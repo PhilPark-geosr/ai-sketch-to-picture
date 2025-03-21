@@ -40,11 +40,14 @@ const DrawingCanvas = () => {
 
       const formData = new FormData()
       formData.append('file', blob, 'drawing.png')
+      const myHeaders = new Headers()
+      myHeaders.append('Content-Type', 'multipart/form-data')
 
       //TODO: 영석님 api 오면
       fetch('http://영석님 api', {
         method: 'POST',
-        body: formData // FormData 사용
+        body: formData, // FormData 사용,
+        headers: myHeaders
       })
         .then(res => res.json())
         .then(data => console.log('Upload Success:', data))
@@ -61,6 +64,13 @@ const DrawingCanvas = () => {
     console.warn('saveImage', canvas)
     const dataURL = canvas.toDataURL()
     console.warn('dataURL', dataURL)
+
+    const a = document.createElement('a')
+    a.href = dataURL
+    a.download = 'canvas_image.png'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   return (
@@ -75,7 +85,7 @@ const DrawingCanvas = () => {
         onMouseUp={stopDrawing}
         onMouseLeave={stopDrawing}
       />
-      {/* <button onClick={uploadImage}>이미지 업로드</button> */}
+      <button onClick={uploadImage}>이미지 업로드</button>
       <button onClick={saveImage}>다운로드</button>
     </>
   )
