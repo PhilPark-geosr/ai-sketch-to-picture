@@ -75,18 +75,32 @@ const DrawingCanvas = () => {
 
   return (
     <>
-      <canvas
-        ref={canvasRef}
-        width={500}
-        height={500}
-        style={{ border: '1px solid black' }}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-      />
-      <button onClick={uploadImage}>이미지 업로드</button>
-      <button onClick={saveImage}>다운로드</button>
+      <div className="w-[500px] h-[500px] mx-auto">
+        <p> Draw here!</p>
+        <canvas
+          className="mb-2.5"
+          ref={canvasRef}
+          width={500}
+          height={500}
+          style={{ border: '1px solid black' }}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+        />
+        <div className="grid grid-cols-2 gap-4">
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
+            onClick={uploadImage}>
+            이미지 업로드
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
+            onClick={saveImage}>
+            다운로드
+          </button>
+        </div>
+      </div>
     </>
   )
 }

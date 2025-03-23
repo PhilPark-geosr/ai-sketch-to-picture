@@ -4,9 +4,9 @@ import DrawingCanvas from '../../components/DrawingCanvas'
 export default function Home() {
   return (
     <>
-      <Counter />
-      <DrawingCanvas />
-      <h1>Home</h1>
+      <div className="max-w-screen-lg mx-auto text-center">
+        <DrawingCanvas />
+      </div>
     </>
   )
 }
