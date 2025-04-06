@@ -31,27 +31,34 @@ const DrawingCanvas = () => {
     setIsDrawing(false)
   }
 
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null)
   const uploadImage = () => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    canvas.toBlob(blob => {
+    canvas.toBlob(async blob => {
       if (!blob) return
 
       const formData = new FormData()
-      formData.append('file', blob, 'drawing.png')
-      const myHeaders = new Headers()
-      myHeaders.append('Content-Type', 'multipart/form-data')
+      formData.append('sketch', blob, 'drawing.png')
 
-      //TODO: 영석님 api 오면
-      fetch('http://영석님 api', {
-        method: 'POST',
-        body: formData, // FormData 사용,
-        headers: myHeaders
-      })
-        .then(res => res.json())
-        .then(data => console.log('Upload Success:', data))
-        .catch(error => console.error('Upload Error:', error))
+      const url = 'http://112.160.104.112:5000/upload'
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          body: formData
+        })
+
+        if (!response.ok) throw new Error('Upload failed')
+
+        const data = await response.json() // API에서 반환된 이미지 URL을 JSON으로 받음
+        console.log('Upload Success:', data)
+
+        setUploadedImageUrl(data.image) // 응답 데이터에서 이미지 URL을 상태에 저장
+      } catch (error) {
+        console.error('Upload Error:', error)
+      }
     }, 'image/png')
   }
 
@@ -73,6 +80,15 @@ const DrawingCanvas = () => {
     document.body.removeChild(a)
   }
 
+  const clearCanvas = (): void => {
+    // ctxRef.current?.clearRect
+    const canvas = canvasRef.current
+    if (!canvas || !ctxRef.current) return
+
+    // 캔버스를 투명하게 지우기
+    ctxRef.current.clearRect(0, 0, canvas.width, canvas.height)
+  }
+
   return (
     <>
       <div className="w-[500px] h-[500px] mx-auto">
@@ -80,8 +96,8 @@ const DrawingCanvas = () => {
         <canvas
           className="mb-2.5"
           ref={canvasRef}
-          width={500}
-          height={500}
+          width={100}
+          height={100}
           style={{ border: '1px solid black' }}
           onMouseDown={startDrawing}
           onMouseMove={draw}
@@ -99,7 +115,24 @@ const DrawingCanvas = () => {
             onClick={saveImage}>
             다운로드
           </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
+            onClick={clearCanvas}>
+            다시그리기
+          </button>
         </div>
+
+        {/* API 응답 받은 이미지 표시 */}
+        {uploadedImageUrl && (
+          <div>
+            <h3>업로드된 이미지</h3>
+            <img
+              src={uploadedImageUrl}
+              alt="Uploaded"
+              style={{ width: '300px', border: '1px solid gray' }}
+            />
+          </div>
+        )}
       </div>
     </>
   )
