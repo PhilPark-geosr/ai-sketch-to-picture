@@ -8,8 +8,8 @@ export const useCreateSketch = () => {
   )
   const result = useMutation({
     mutationFn: async (formData: FormData) => {
-      const url = 'http://112.160.104.112:5000/upload'
-
+      const url = import.meta.env.VITE_AI_SERVER_URL + '/upload'
+      console.warn('api server url', url)
       try {
         const response = await axios.post(url, formData, {
           headers: {
