@@ -1,17 +1,15 @@
 import { useRef, useState } from 'react'
-import defaultImage from '@/assets/chair.png'
-import axios, { AxiosProgressEvent } from 'axios'
+import { useCreateSketch } from '../hooks/sketch'
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(
-    defaultImage
-  )
+  const {
+    result: { data, status, mutateAsync: createSketch },
+    uploadedImageUrl
+  } = useCreateSketch()
 
-  const [progress, setProgress] = useState<number>(0)
-
-  const startDrawing = (event: React.MouseEvent) => {
+  const startDrawing = (event: React.MouseEvent): void => {
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -24,94 +22,76 @@ const DrawingCanvas = () => {
     setIsDrawing(true)
   }
 
-  const draw = (event: React.MouseEvent) => {
+  const draw = (event: React.MouseEvent): void => {
     if (!isDrawing || !ctxRef.current) return
     ctxRef.current.lineTo(event.nativeEvent.offsetX, event.nativeEvent.offsetY)
     ctxRef.current.stroke()
   }
 
-  const stopDrawing = () => {
+  const stopDrawing = (): void => {
     if (ctxRef.current) {
       ctxRef.current.closePath()
     }
     setIsDrawing(false)
   }
 
-  // const uploadImage = () => { //by fetch
-  //   const canvas = canvasRef.current
-  //   if (!canvas) return
-
-  //   canvas.toBlob(async blob => {
-  //     if (!blob) return
-
-  //     const formData = new FormData()
-  //     formData.append('sketch', blob, 'drawing.png')
-
-  //     const url = 'http://112.160.104.112:5000/upload'
-
-  //     try {
-  //       const response = await fetch(url, {
-  //         method: 'POST',
-  //         body: formData
-  //       })
-
-  //       if (!response.ok) throw new Error('Upload failed')
-
-  //       const data = await response.json() // API에서 반환된 이미지 URL을 JSON으로 받음
-  //       console.log('Upload Success:', data)
-
-  //       setUploadedImageUrl(data.image) // 응답 데이터에서 이미지 URL을 상태에 저장
-  //     } catch (error) {
-  //       console.error('Upload Error:', error)
-  //     }
-  //   }, 'image/png')
-  // }
-
-  const uploadImage = () => {
+  const uploadImage = (): void => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    canvas.toBlob(async blob => {
-      if (!blob) return
+    // 임시 캔버스 생성
+    const whiteCanvas = document.createElement('canvas')
+    const ctx = whiteCanvas.getContext('2d')
+    if (!ctx) return
 
+    whiteCanvas.width = canvas.width
+    whiteCanvas.height = canvas.height
+
+    // 배경을 하얀색으로 채움
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, whiteCanvas.width, whiteCanvas.height)
+
+    // 원래 캔버스를 복사
+    ctx.drawImage(canvas, 0, 0)
+
+    // blob으로 변환하여 업로드
+    whiteCanvas.toBlob(async blob => {
+      if (!blob) return
       const formData = new FormData()
       formData.append('sketch', blob, 'drawing.png')
-
-      const url = 'http://112.160.104.112:5000/upload'
-
-      try {
-        const response = await axios.post(url, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          },
-          onUploadProgress: (event: AxiosProgressEvent) => {
-            if (event.progress) {
-              const progressPercent = Math.round(event.progress * 100)
-              setProgress(progressPercent)
-            }
-          }
-        })
-
-        const data = response.data
-        setUploadedImageUrl(data.image)
-      } catch (error) {
-        console.error('Upload Error:', error)
-      }
+      createSketch(formData)
     }, 'image/png')
   }
 
-  const saveImage = () => {
+  const saveImage = (): void => {
     const canvas = canvasRef.current
     if (!canvas) {
       console.error('canvas does not exist')
       return
     }
 
-    console.warn('saveImage', canvas)
-    const dataURL = canvas.toDataURL('image/png')
+    // 오프스크린 캔버스 생성
+    const whiteCanvas = document.createElement('canvas')
+    whiteCanvas.width = canvas.width
+    whiteCanvas.height = canvas.height
+    const ctx = whiteCanvas.getContext('2d')
+
+    if (!ctx) {
+      console.error('context does not exist')
+      return
+    }
+
+    // 흰색 배경 먼저 그리기
+    ctx.fillStyle = 'white'
+    ctx.fillRect(0, 0, whiteCanvas.width, whiteCanvas.height)
+
+    // 원래 캔버스 내용 복사
+    ctx.drawImage(canvas, 0, 0)
+
+    // dataURL로 저장
+    const dataURL = whiteCanvas.toDataURL('image/png')
     console.warn('dataURL', dataURL)
 
-    // 다운로드 처리
     const a = document.createElement('a')
     a.href = dataURL
     a.download = 'canvas_image.png'
@@ -161,12 +141,14 @@ const DrawingCanvas = () => {
             다시그리기
           </button>
         </div>
+        {status && <p>{status}</p>}
 
         {/* API 응답 받은 이미지 표시 */}
         {uploadedImageUrl && (
           <div>
             <p className="text-center font-semibold">업로드된 이미지</p>
-            {progress > 0 && <p>Uploading... {progress}%</p>}
+            {/* {progress > 0 && <p>Uploading... {progress}%</p>} */}
+
             <img
               className="mx-auto"
               src={uploadedImageUrl}
