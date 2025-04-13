@@ -4,12 +4,12 @@ const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
-
   const {
     result: { data, status, mutateAsync: createSketch },
     uploadedImageUrl
   } = useCreateSketch()
-  const startDrawing = (event: React.MouseEvent) => {
+
+  const startDrawing = (event: React.MouseEvent): void => {
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -22,20 +22,20 @@ const DrawingCanvas = () => {
     setIsDrawing(true)
   }
 
-  const draw = (event: React.MouseEvent) => {
+  const draw = (event: React.MouseEvent): void => {
     if (!isDrawing || !ctxRef.current) return
     ctxRef.current.lineTo(event.nativeEvent.offsetX, event.nativeEvent.offsetY)
     ctxRef.current.stroke()
   }
 
-  const stopDrawing = () => {
+  const stopDrawing = (): void => {
     if (ctxRef.current) {
       ctxRef.current.closePath()
     }
     setIsDrawing(false)
   }
 
-  const uploadImage = () => {
+  const uploadImage = (): void => {
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -63,7 +63,7 @@ const DrawingCanvas = () => {
     }, 'image/png')
   }
 
-  const saveImage = () => {
+  const saveImage = (): void => {
     const canvas = canvasRef.current
     if (!canvas) {
       console.error('canvas does not exist')
