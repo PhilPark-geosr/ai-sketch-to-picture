@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react'
 import { useCreateSketch } from '../hooks/sketch'
+import html2canvas from 'html2canvas'
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
-  const [downloadable, setDownLoadable] = useState(false)
-
+  const [downloadable, setDownLoadable] = useState(true)
+  const imgRef = useRef<HTMLImageElement>(null)
   const {
     result: { data, status, mutateAsync: createSketch },
     uploadedImageUrl
@@ -116,6 +117,17 @@ const DrawingCanvas = () => {
     ctxRef.current.clearRect(0, 0, canvas.width, canvas.height)
   }
 
+  const saveResult = async (): Promise<void> => {
+    if (!imgRef.current) return
+
+    const canvas = await html2canvas(imgRef.current)
+    const dataUrl = canvas.toDataURL('image/png')
+
+    const link = document.createElement('a')
+    link.href = dataUrl
+    link.download = 'captured-image.png'
+    link.click()
+  }
   return (
     <>
       <div className="w-[500px] h-[500px] mx-auto">
@@ -138,9 +150,7 @@ const DrawingCanvas = () => {
             이미지 업로드
           </button>
           <button
-            disabled={!downloadable}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
-            disabled:opacity-30 disabled:cursor-not-allowed"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
             onClick={saveImage}>
             다운로드
           </button>
@@ -157,8 +167,8 @@ const DrawingCanvas = () => {
           <div>
             <p className="text-center font-semibold">업로드된 이미지</p>
             {/* {progress > 0 && <p>Uploading... {progress}%</p>} */}
-
             <img
+              ref={imgRef}
               className="mx-auto"
               src={uploadedImageUrl}
               alt="Uploaded"
@@ -166,6 +176,13 @@ const DrawingCanvas = () => {
             />
           </div>
         )}
+        <button
+          disabled={!downloadable}
+          className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
+            disabled:opacity-30 disabled:cursor-not-allowed"
+          onClick={saveResult}>
+          결과 다운로드
+        </button>
       </div>
     </>
   )
