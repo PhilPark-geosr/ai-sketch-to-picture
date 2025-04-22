@@ -147,7 +147,7 @@ const DrawingCanvas = () => {
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
             onClick={uploadImage}>
-            이미지 업로드
+            이미지 생성
           </button>
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
