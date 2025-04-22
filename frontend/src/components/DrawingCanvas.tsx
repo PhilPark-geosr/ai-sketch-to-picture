@@ -142,7 +142,7 @@ const DrawingCanvas = () => {
           </button>
         </div>
         {status && <p>{status}</p>}
-
+        <p data-testid="uploadImageUrl">{uploadedImageUrl} </p>
         {/* API 응답 받은 이미지 표시 */}
         {uploadedImageUrl && (
           <div>
