@@ -4,6 +4,8 @@ const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
+  const [downloadable, setDownLoadable] = useState(false)
+
   const {
     result: { data, status, mutateAsync: createSketch },
     uploadedImageUrl
@@ -59,7 +61,12 @@ const DrawingCanvas = () => {
       if (!blob) return
       const formData = new FormData()
       formData.append('sketch', blob, 'drawing.png')
-      createSketch(formData)
+
+      //TODO: uploadImageUrl받아오는 로직 바꿀 필요 있음
+      const res = await createSketch(formData)
+      if (res.image) {
+        setDownLoadable(true)
+      }
     }, 'image/png')
   }
 
@@ -131,7 +138,9 @@ const DrawingCanvas = () => {
             이미지 업로드
           </button>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
+            disabled={!downloadable}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
+            disabled:opacity-30 disabled:cursor-not-allowed"
             onClick={saveImage}>
             다운로드
           </button>
