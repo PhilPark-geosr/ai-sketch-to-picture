@@ -143,6 +143,11 @@ const DrawingCanvas = () => {
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
         />
+        <div
+          onClick={clearCanvas}
+          className="w-[25px] h-[25px] mx-auto my-5">
+          <img src="src/assets/reload.png" />
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
@@ -153,11 +158,6 @@ const DrawingCanvas = () => {
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
             onClick={saveImage}>
             다운로드
-          </button>
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
-            onClick={clearCanvas}>
-            다시그리기
           </button>
         </div>
         {status && <p>{status}</p>}
