@@ -130,13 +130,13 @@ const DrawingCanvas = () => {
   }
   return (
     <>
-      <div className="w-[500px] h-[500px] mx-auto">
+      <div className="w-[300px] h-[300px] mx-auto">
         <p className="text-center font-semibold"> Draw here!</p>
         <canvas
           className="mb-2.5 mx-auto"
           ref={canvasRef}
-          width={100}
-          height={100}
+          width={300}
+          height={300}
           style={{ border: '1px solid black' }}
           onMouseDown={startDrawing}
           onMouseMove={draw}
@@ -145,7 +145,7 @@ const DrawingCanvas = () => {
         />
         <div
           onClick={clearCanvas}
-          className="w-[25px] h-[25px] mx-auto my-5">
+          className="w-[25px] h-[25px] mx-auto my-3">
           <img src="src/assets/reload.png" />
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -160,11 +160,15 @@ const DrawingCanvas = () => {
             다운로드
           </button>
         </div>
-        {status && <p>{status}</p>}
-        <p data-testid="uploadImageUrl">{uploadedImageUrl} </p>
+        {status && <p className="font-bold">Server status : {status}</p>}
+        <p
+          className="font-bold"
+          data-testid="uploadImageUrl">
+          uploadImageUrl : {uploadedImageUrl}{' '}
+        </p>
         {/* API 응답 받은 이미지 표시 */}
         {uploadedImageUrl && (
-          <div>
+          <div className="mt-6">
             <p className="text-center font-semibold">업로드된 이미지</p>
             {/* {progress > 0 && <p>Uploading... {progress}%</p>} */}
             <img
