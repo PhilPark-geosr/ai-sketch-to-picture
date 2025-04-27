@@ -1,9 +1,12 @@
 import { useRef, useState } from 'react'
 import { useCreateSketch } from '../hooks/sketch'
+import html2canvas from 'html2canvas'
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
+  const [downloadable, setDownLoadable] = useState(true)
+  const imgRef = useRef<HTMLImageElement>(null)
   const {
     result: { data, status, mutateAsync: createSketch },
     uploadedImageUrl
@@ -59,7 +62,12 @@ const DrawingCanvas = () => {
       if (!blob) return
       const formData = new FormData()
       formData.append('sketch', blob, 'drawing.png')
-      createSketch(formData)
+
+      //TODO: uploadImageUrl받아오는 로직 바꿀 필요 있음
+      const res = await createSketch(formData)
+      if (res.image) {
+        setDownLoadable(true)
+      }
     }, 'image/png')
   }
 
@@ -109,47 +117,62 @@ const DrawingCanvas = () => {
     ctxRef.current.clearRect(0, 0, canvas.width, canvas.height)
   }
 
+  const saveResult = async (): Promise<void> => {
+    if (!imgRef.current) return
+
+    const canvas = await html2canvas(imgRef.current)
+    const dataUrl = canvas.toDataURL('image/png')
+
+    const link = document.createElement('a')
+    link.href = dataUrl
+    link.download = 'captured-image.png'
+    link.click()
+  }
   return (
     <>
-      <div className="w-[500px] h-[500px] mx-auto">
+      <div className="w-[300px] h-[300px] mx-auto">
         <p className="text-center font-semibold"> Draw here!</p>
         <canvas
           className="mb-2.5 mx-auto"
           ref={canvasRef}
-          width={100}
-          height={100}
+          width={300}
+          height={300}
           style={{ border: '1px solid black' }}
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
         />
+        <div
+          onClick={clearCanvas}
+          className="w-[25px] h-[25px] mx-auto my-3">
+          <img src="src/assets/reload.png" />
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
             onClick={uploadImage}>
-            이미지 업로드
+            이미지 생성
           </button>
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
             onClick={saveImage}>
             다운로드
           </button>
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
-            onClick={clearCanvas}>
-            다시그리기
-          </button>
         </div>
-        {status && <p>{status}</p>}
-        <p data-testid="uploadImageUrl">{uploadedImageUrl} </p>
+        {status && <p className="font-bold">Server status : {status}</p>}
+        <p
+          className="font-bold"
+          data-testid="uploadImageUrl">
+          uploadImageUrl : {uploadedImageUrl}{' '}
+        </p>
         {/* API 응답 받은 이미지 표시 */}
         {uploadedImageUrl && (
-          <div>
+          <div className="mt-6">
             <p className="text-center font-semibold">업로드된 이미지</p>
             {/* {progress > 0 && <p>Uploading... {progress}%</p>} */}
-
             <img
+              ref={imgRef}
               className="mx-auto"
               src={uploadedImageUrl}
               alt="Uploaded"
@@ -157,6 +180,13 @@ const DrawingCanvas = () => {
             />
           </div>
         )}
+        <button
+          disabled={!downloadable}
+          className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
+            disabled:opacity-30 disabled:cursor-not-allowed"
+          onClick={saveResult}>
+          결과 다운로드
+        </button>
       </div>
     </>
   )
