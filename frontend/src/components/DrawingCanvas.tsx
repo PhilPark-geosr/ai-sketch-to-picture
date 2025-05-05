@@ -1,11 +1,14 @@
 import { useRef, useState } from 'react'
 import { useCreateSketch } from '../hooks/sketch'
 import html2canvas from 'html2canvas'
+import BasicSelect from './BasicSelect'
+import { useSelector } from 'react-redux'
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [downloadable, setDownLoadable] = useState(true)
+  const prompt = useSelector((state: any) => state.prompt)
   const imgRef = useRef<HTMLImageElement>(null)
   const {
     result: { data, status, mutateAsync: createSketch },
@@ -37,7 +40,7 @@ const DrawingCanvas = () => {
     }
     setIsDrawing(false)
   }
-
+  console.warn('Drawing canvas load!')
   const uploadImage = (): void => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -61,9 +64,11 @@ const DrawingCanvas = () => {
     whiteCanvas.toBlob(async blob => {
       if (!blob) return
       const formData = new FormData()
+      // sketch 인자 넣기
       formData.append('sketch', blob, 'drawing.png')
 
-      //TODO: uploadImageUrl받아오는 로직 바꿀 필요 있음
+      // 프롬프트 인자 넣기
+      console.warn('prompt', prompt)
       const res = await createSketch(formData)
       if (res.image) {
         setDownLoadable(true)
@@ -109,7 +114,6 @@ const DrawingCanvas = () => {
   }
 
   const clearCanvas = (): void => {
-    // ctxRef.current?.clearRect
     const canvas = canvasRef.current
     if (!canvas || !ctxRef.current) return
 
@@ -132,17 +136,32 @@ const DrawingCanvas = () => {
     <>
       <div className="w-[300px] h-[300px] mx-auto">
         <p className="text-center font-semibold"> Draw here!</p>
-        <canvas
-          className="mb-2.5 mx-auto"
-          ref={canvasRef}
-          width={300}
-          height={300}
-          style={{ border: '1px solid black' }}
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-        />
+        <div className="flex">
+          <canvas
+            className="mb-2.5 mx-auto"
+            ref={canvasRef}
+            width={300}
+            height={300}
+            style={{ border: '1px solid black' }}
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+          />
+          <BasicSelect
+            category="Funiture"
+            list={['chair', 'table', 'computer']}
+          />
+          <BasicSelect
+            category="Material"
+            list={['iron', 'wood', 'alloy']}
+          />
+          <BasicSelect
+            category="Color"
+            list={['black', 'white', 'beige']}
+          />
+        </div>
+
         <div
           onClick={clearCanvas}
           className="w-[25px] h-[25px] mx-auto my-3">
@@ -161,6 +180,7 @@ const DrawingCanvas = () => {
           </button>
         </div>
         {status && <p className="font-bold">Server status : {status}</p>}
+        <p>프롬프트 {prompt.message}</p>
         <p
           className="font-bold"
           data-testid="uploadImageUrl">

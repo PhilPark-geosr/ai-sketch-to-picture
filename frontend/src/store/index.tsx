@@ -12,10 +12,10 @@ export interface StoreState {
 // slice에서는 기본적으로 기존 상태를 변경하지 않고, 덮어쓰는 동작을 내부적으로 구현되어 있어,
 // 내가 짠 코드는 상태를 변경하는거 같아도 실제로 내부적으로는 덮어쓰고 있음.
 
-const initialState = { counter: 0, showCounter: true }
+const initialCounterState = { counter: 0, showCounter: true }
 const counterSlice = createSlice({
   name: 'counter',
-  initialState: initialState,
+  initialState: initialCounterState,
   reducers: {
     increment(state) {
       state.counter++
@@ -32,10 +32,32 @@ const counterSlice = createSlice({
     }
   }
 })
+
+const initalPromptState = { category: '', value: '', message: '' }
+const promptSlice = createSlice({
+  name: 'prompt',
+  initialState: initalPromptState,
+  reducers: {
+    setPrompt(state, action) {
+      console.warn('prompt setPrompt', action)
+      state.category = action.payload.category
+      state.value = action.payload.value
+      state.message += `${action.payload.category}는 ${action.payload.value} `
+    },
+    clearPrompt(state) {
+      state.message = ''
+    }
+  }
+})
+
 // 여러 리듀서를 합쳐야 할 떄 reducer에 맵 객체로 지정하면 된다.
 const store = configureStore({
-  reducer: counterSlice.reducer
+  reducer: {
+    counter: counterSlice.reducer,
+    prompt: promptSlice.reducer
+  }
 })
+export const promptActions = promptSlice.actions
 export const counterActions = counterSlice.actions //모든 액션들 방출
 // react에 방출
 export default store
