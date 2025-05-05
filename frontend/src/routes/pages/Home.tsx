@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <>
       <div className="max-w-screen-lg mx-auto text-center">
-        <Counter />
+        {/* <Counter /> */}
         <DrawingCanvas />
       </div>
     </>

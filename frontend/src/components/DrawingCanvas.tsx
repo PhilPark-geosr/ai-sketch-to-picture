@@ -2,13 +2,15 @@ import { useRef, useState } from 'react'
 import { useCreateSketch } from '../hooks/sketch'
 import html2canvas from 'html2canvas'
 import BasicSelect from './BasicSelect'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { promptActions } from '../store'
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [downloadable, setDownLoadable] = useState(true)
   const prompt = useSelector((state: any) => state.prompt)
+  const dispatch = useDispatch()
   const imgRef = useRef<HTMLImageElement>(null)
   const {
     result: { data, status, mutateAsync: createSketch },
@@ -69,7 +71,10 @@ const DrawingCanvas = () => {
 
       // 프롬프트 인자 넣기
       console.warn('prompt', prompt)
+      formData.append('prompt', prompt.message)
+      dispatch(promptActions.clearPrompt())
       const res = await createSketch(formData)
+
       if (res.image) {
         setDownLoadable(true)
       }
