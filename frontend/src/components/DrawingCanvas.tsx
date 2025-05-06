@@ -1,11 +1,17 @@
 import { useRef, useState } from 'react'
 import { useCreateSketch } from '../hooks/sketch'
 import html2canvas from 'html2canvas'
+import BasicSelect from './BasicSelect'
+import { useDispatch, useSelector } from 'react-redux'
+import { promptActions } from '../store'
+import MultilineTextFields from './MultilineTextFields'
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [downloadable, setDownLoadable] = useState(true)
+  const prompt = useSelector((state: any) => state.prompt)
+  const dispatch = useDispatch()
   const imgRef = useRef<HTMLImageElement>(null)
   const {
     result: { data, status, mutateAsync: createSketch },
@@ -37,7 +43,7 @@ const DrawingCanvas = () => {
     }
     setIsDrawing(false)
   }
-
+  console.warn('Drawing canvas load!')
   const uploadImage = (): void => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -61,10 +67,15 @@ const DrawingCanvas = () => {
     whiteCanvas.toBlob(async blob => {
       if (!blob) return
       const formData = new FormData()
+      // sketch 인자 넣기
       formData.append('sketch', blob, 'drawing.png')
 
-      //TODO: uploadImageUrl받아오는 로직 바꿀 필요 있음
+      // 프롬프트 인자 넣기
+      console.warn('prompt', prompt)
+      formData.append('prompt', prompt.message)
+      dispatch(promptActions.clearPrompt())
       const res = await createSketch(formData)
+
       if (res.image) {
         setDownLoadable(true)
       }
@@ -109,7 +120,6 @@ const DrawingCanvas = () => {
   }
 
   const clearCanvas = (): void => {
-    // ctxRef.current?.clearRect
     const canvas = canvasRef.current
     if (!canvas || !ctxRef.current) return
 
@@ -130,25 +140,43 @@ const DrawingCanvas = () => {
   }
   return (
     <>
-      <div className="w-[300px] h-[300px] mx-auto">
+      <div className="mx-auto">
         <p className="text-center font-semibold"> Draw here!</p>
-        <canvas
-          className="mb-2.5 mx-auto"
-          ref={canvasRef}
-          width={300}
-          height={300}
-          style={{ border: '1px solid black' }}
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-        />
+        <div className="flex">
+          <div className="flex-1"></div>
+          <canvas
+            className="mb-2.5 flex-1"
+            ref={canvasRef}
+            width={300}
+            height={300}
+            style={{ border: '1px solid black' }}
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+          />
+          <div className="selectBox flex-1">
+            <BasicSelect
+              category="Funiture"
+              list={['chair', 'table', 'computer']}
+            />
+            <BasicSelect
+              category="Material"
+              list={['iron', 'wood', 'alloy']}
+            />
+            <BasicSelect
+              category="Color"
+              list={['black', 'white', 'beige']}
+            />
+          </div>
+        </div>
+
         <div
           onClick={clearCanvas}
           className="w-[25px] h-[25px] mx-auto my-3">
           <img src="src/assets/reload.png" />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 w-[300px] mx-auto">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
             onClick={uploadImage}>
@@ -161,31 +189,45 @@ const DrawingCanvas = () => {
           </button>
         </div>
         {status && <p className="font-bold">Server status : {status}</p>}
+        <p>프롬프트 {prompt.message}</p>
         <p
           className="font-bold"
           data-testid="uploadImageUrl">
           uploadImageUrl : {uploadedImageUrl}{' '}
         </p>
         {/* API 응답 받은 이미지 표시 */}
-        {uploadedImageUrl && (
-          <div className="mt-6">
-            <p className="text-center font-semibold">업로드된 이미지</p>
-            {/* {progress > 0 && <p>Uploading... {progress}%</p>} */}
-            <img
-              ref={imgRef}
-              className="mx-auto"
-              src={uploadedImageUrl}
-              alt="Uploaded"
-              style={{ width: '300px', border: '1px solid gray' }}
-            />
+        <div className="flex">
+          <div className="flex-1"></div>
+          {uploadedImageUrl && (
+            <div className="mt-6 flex-1">
+              <p className="text-center font-semibold">업로드된 이미지</p>
+              {/* {progress > 0 && <p>Uploading... {progress}%</p>} */}
+              <img
+                ref={imgRef}
+                className="mx-auto"
+                src={uploadedImageUrl}
+                alt="Uploaded"
+                style={{ width: '300px', border: '1px solid gray' }}
+              />
+            </div>
+          )}
+          <div className="flex-1 mt-10">
+            <MultilineTextFields />
           </div>
-        )}
+        </div>
+
         <button
           disabled={!downloadable}
           className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
             disabled:opacity-30 disabled:cursor-not-allowed"
           onClick={saveResult}>
           결과 다운로드
+        </button>
+        <button
+          className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
+            disabled:opacity-30 disabled:cursor-not-allowed"
+          onClick={uploadImage}>
+          재요청
         </button>
       </div>
     </>
