@@ -18,7 +18,7 @@ export default function BasicSelect({
   const handleChange = (event: SelectChangeEvent) => {
     // redux활용하여 넣기
     dispatch(
-      promptActions.setPrompt({
+      promptActions.setPromptBySelectBox({
         category: category,
         value: event.target.value
       })
