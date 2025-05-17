@@ -150,7 +150,13 @@ const DrawingCanvas = () => {
             다운로드
           </button>
         </div>
-        {status && <p className="font-bold">Server status : {status}</p>}
+        {status && (
+          <p
+            className="font-bold"
+            data-testid="status">
+            Server status : {status}
+          </p>
+        )}
         <p>프롬프트 {prompt.message}</p>
         {/* <p
           className="font-bold"
@@ -166,6 +172,7 @@ const DrawingCanvas = () => {
               {/* {progress > 0 && <p>Uploading... {progress}%</p>} */}
               <img
                 ref={imgRef}
+                data-testid="uploadImageUrl"
                 className="mx-auto bg-white shadow-md rounded-xl"
                 src={uploadedImageUrl}
                 alt="Uploaded"
