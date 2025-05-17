@@ -158,11 +158,6 @@ const DrawingCanvas = () => {
           </p>
         )}
         <p>프롬프트 {prompt.message}</p>
-        {/* <p
-          className="font-bold"
-          data-testid="uploadImageUrl">
-          uploadImageUrl : {uploadedImageUrl}{' '}
-        </p> */}
         {/* API 응답 받은 이미지 표시 */}
         <div className="flex">
           <div className="flex-1"></div>
