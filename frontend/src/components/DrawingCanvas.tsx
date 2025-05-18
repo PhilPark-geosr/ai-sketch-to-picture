@@ -4,8 +4,9 @@ import BasicSelect from './BasicSelect'
 import { useDispatch, useSelector } from 'react-redux'
 import { promptActions } from '../store'
 import MultilineTextFields from './MultilineTextFields'
-import { uploadImageUtil } from '../utils/uploadImage'
+import { uploadImageUtil, uploadSketchUtil } from '../utils/uploadImage'
 import { saveCanvasImage, saveHtmlElementAsImage } from '../utils/canvasUtils'
+import defaultImage from '@/assets/chair.png'
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
@@ -68,16 +69,27 @@ const DrawingCanvas = () => {
     ctxRef.current.clearRect(0, 0, canvas.width, canvas.height)
   }
 
-  const uploadImage = () => {
+  const uploadSketch = (): void => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    uploadImageUtil({
+    uploadSketchUtil({
       canvas,
       prompt: prompt.message,
       clearPrompt: () => dispatch(promptActions.clearPrompt()),
       createSketch,
       onSuccess: () => setDownLoadable(true)
+    })
+  }
+
+  const reinferenceImage = (): void => {
+    // if (uploadedImageUrl == defaultImage) return
+    uploadImageUtil({
+      image: uploadedImageUrl,
+      prompt: prompt.message,
+      clearPrompt: () => dispatch(promptActions.clearPrompt()),
+      createSketch,
+      onSuccess: () => {}
     })
   }
 
@@ -141,7 +153,7 @@ const DrawingCanvas = () => {
         <div className="grid grid-cols-2 gap-4 w-[300px] mx-auto">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
-            onClick={uploadImage}>
+            onClick={uploadSketch}>
             이미지 생성
           </button>
           <button
@@ -190,7 +202,7 @@ const DrawingCanvas = () => {
         <button
           className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
             disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={uploadImage}>
+          onClick={reinferenceImage}>
           재요청
         </button>
       </div>

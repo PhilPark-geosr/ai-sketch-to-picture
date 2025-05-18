@@ -25,9 +25,6 @@ describe('DrawingCanvas', () => {
         showCounter: true
       }
     })
-  })
-  it('calls createSketch when uploadImage button is clicked', async () => {
-    // useCreateSketch 훅을 모킹
     vi.spyOn(sketchHook, 'useCreateSketch').mockReturnValue({
       result: {
         data: null,
@@ -38,6 +35,9 @@ describe('DrawingCanvas', () => {
       },
       uploadedImageUrl: null
     })
+  })
+  it('calls createSketch when uploadImage button is clicked', async () => {
+    // useCreateSketch 훅을 모킹
 
     render(
       <Provider store={store}>
