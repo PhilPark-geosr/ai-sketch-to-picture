@@ -7,7 +7,10 @@ import MultilineTextFields from './MultilineTextFields'
 import { uploadImageUtil, uploadSketchUtil } from '../utils/uploadImage'
 import { saveCanvasImage, saveHtmlElementAsImage } from '../utils/canvasUtils'
 import defaultImage from '@/assets/chair.png'
+import eraser from '@/assets/eraser.png'
+import SearchDialog from './modals/SearchDialog'
 const DrawingCanvas = () => {
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
@@ -76,18 +79,25 @@ const DrawingCanvas = () => {
     uploadSketchUtil({
       canvas,
       prompt: prompt.message,
-      clearPrompt: () => dispatch(promptActions.clearPrompt()),
+      clearPrompt: () => {
+        dispatch(promptActions.clearPrompt())
+        dialogRef.current?.showModal()
+      },
       createSketch,
-      onSuccess: () => setDownLoadable(true)
+      onSuccess: () => {
+        setDownLoadable(true)
+      }
     })
   }
 
   const reinferenceImage = (): void => {
-    // if (uploadedImageUrl == defaultImage) return
+    if (uploadedImageUrl == defaultImage) return
     uploadImageUtil({
       image: uploadedImageUrl,
       prompt: prompt.message,
-      clearPrompt: () => dispatch(promptActions.clearPrompt()),
+      clearPrompt: () => {
+        dispatch(promptActions.clearPrompt())
+      },
       createSketch,
       onSuccess: () => {}
     })
@@ -109,6 +119,7 @@ const DrawingCanvas = () => {
 
   return (
     <>
+      <SearchDialog ref={dialogRef} />
       <div className="mx-auto">
         <p className="text-center font-semibold"> Draw here!</p>
         <div className="flex">
@@ -140,16 +151,22 @@ const DrawingCanvas = () => {
           </div>
         </div>
 
-        <div
-          onClick={clearCanvas}
-          className="w-[25px] h-[25px] mx-auto my-3">
-          <img src="src/assets/reload.png" />
+        <div className="flex w-[300px] mx-auto  my-3">
+          <button
+            className={`my-3 ${isErasing ? 'bg-red-500' : 'bg-gray-500'} hover:bg-gray-700 mx-auto w-[60px] text-white font-bold py-2 px-4 rounded-2xl`}
+            onClick={() => setIsErasing(prev => !prev)}>
+            <img
+              src={eraser}
+              width={30}
+            />
+          </button>
+          <img
+            onClick={clearCanvas}
+            className="mx-auto w-[30px] h-[30px] my-4 "
+            src="src/assets/reload.png"
+          />
         </div>
-        <button
-          className={`my-3 ${isErasing ? 'bg-red-500' : 'bg-gray-500'} hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-2xl`}
-          onClick={() => setIsErasing(prev => !prev)}>
-          {isErasing ? '지우개 끄기' : '지우개 켜기'}
-        </button>
+
         <div className="grid grid-cols-2 gap-4 w-[300px] mx-auto">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
@@ -191,20 +208,21 @@ const DrawingCanvas = () => {
             <MultilineTextFields />
           </div>
         </div>
-
-        <button
-          disabled={!downloadable}
-          className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
+        <div className="grid grid-cols-2 gap-4 w-[300px] mx-auto">
+          <button
+            className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
             disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={saveResult}>
-          결과 다운로드
-        </button>
-        <button
-          className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
+            onClick={reinferenceImage}>
+            재요청
+          </button>
+          <button
+            disabled={!downloadable}
+            className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
             disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={reinferenceImage}>
-          재요청
-        </button>
+            onClick={saveResult}>
+            결과 다운로드
+          </button>
+        </div>
       </div>
     </>
   )
