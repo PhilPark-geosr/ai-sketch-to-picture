@@ -54,10 +54,10 @@ export const uploadImageUtil = async ({
   createSketch,
   onSuccess
 }: UploadImageParams) => {
-  // console.warn('uploadImageUtil호출', image)
   const formData = new FormData()
-  const blob = new Blob([image], { type: 'image/png' })
-  console.warn('uploadImageUtil호출', blob)
+  const decodedBlob = await fetch(image)
+  const blob = await decodedBlob.blob()
+
   formData.append('sketch', blob, 'drawing.png')
   formData.append('prompt', prompt)
   clearPrompt()
