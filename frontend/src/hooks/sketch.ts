@@ -3,9 +3,7 @@ import axios, { AxiosProgressEvent } from 'axios'
 import defaultImage from '@/assets/chair.png'
 import { useState } from 'react'
 export const useCreateSketch = () => {
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(
-    defaultImage
-  )
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>(defaultImage)
   const result = useMutation({
     mutationFn: async (formData: FormData) => {
       const url = import.meta.env.VITE_AI_SERVER_URL + '/upload'
@@ -24,6 +22,7 @@ export const useCreateSketch = () => {
           //   }
         })
 
+        //TODO: data type 명시 필요
         const data = response.data
         setUploadedImageUrl(data.image)
         return data

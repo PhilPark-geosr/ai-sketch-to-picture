@@ -1,22 +1,30 @@
 import { useRef, useState } from 'react'
 import { useCreateSketch } from '../hooks/sketch'
-import html2canvas from 'html2canvas'
 import BasicSelect from './BasicSelect'
 import { useDispatch, useSelector } from 'react-redux'
 import { promptActions } from '../store'
 import MultilineTextFields from './MultilineTextFields'
+import { uploadImageUtil, uploadSketchUtil } from '../utils/uploadImage'
+import { saveCanvasImage, saveHtmlElementAsImage } from '../utils/canvasUtils'
+import defaultImage from '@/assets/chair.png'
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
+
   const [isDrawing, setIsDrawing] = useState(false)
+  const [isErasing, setIsErasing] = useState(false)
   const [downloadable, setDownLoadable] = useState(true)
+
   const prompt = useSelector((state: any) => state.prompt)
   const dispatch = useDispatch()
-  const imgRef = useRef<HTMLImageElement>(null)
+
   const {
     result: { data, status, mutateAsync: createSketch },
     uploadedImageUrl
   } = useCreateSketch()
+
+  console.warn('Drawing canvas load!')
 
   const startDrawing = (event: React.MouseEvent): void => {
     const canvas = canvasRef.current
@@ -33,6 +41,15 @@ const DrawingCanvas = () => {
 
   const draw = (event: React.MouseEvent): void => {
     if (!isDrawing || !ctxRef.current) return
+    const ctx = ctxRef.current
+    // 지우개일 경우 지우기 모드
+    if (isErasing) {
+      ctx.globalCompositeOperation = 'destination-out'
+      ctx.lineWidth = 20 // 지우개 크기 설정
+    } else {
+      ctx.globalCompositeOperation = 'source-over'
+      ctx.lineWidth = 2 // 일반 선 굵기
+    }
     ctxRef.current.lineTo(event.nativeEvent.offsetX, event.nativeEvent.offsetY)
     ctxRef.current.stroke()
   }
@@ -43,81 +60,6 @@ const DrawingCanvas = () => {
     }
     setIsDrawing(false)
   }
-  console.warn('Drawing canvas load!')
-  const uploadImage = (): void => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    // 임시 캔버스 생성
-    const whiteCanvas = document.createElement('canvas')
-    const ctx = whiteCanvas.getContext('2d')
-    if (!ctx) return
-
-    whiteCanvas.width = canvas.width
-    whiteCanvas.height = canvas.height
-
-    // 배경을 하얀색으로 채움
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, whiteCanvas.width, whiteCanvas.height)
-
-    // 원래 캔버스를 복사
-    ctx.drawImage(canvas, 0, 0)
-
-    // blob으로 변환하여 업로드
-    whiteCanvas.toBlob(async blob => {
-      if (!blob) return
-      const formData = new FormData()
-      // sketch 인자 넣기
-      formData.append('sketch', blob, 'drawing.png')
-
-      // 프롬프트 인자 넣기
-      console.warn('prompt', prompt)
-      formData.append('prompt', prompt.message)
-      dispatch(promptActions.clearPrompt())
-      const res = await createSketch(formData)
-
-      if (res.image) {
-        setDownLoadable(true)
-      }
-    }, 'image/png')
-  }
-
-  const saveImage = (): void => {
-    const canvas = canvasRef.current
-    if (!canvas) {
-      console.error('canvas does not exist')
-      return
-    }
-
-    // 오프스크린 캔버스 생성
-    const whiteCanvas = document.createElement('canvas')
-    whiteCanvas.width = canvas.width
-    whiteCanvas.height = canvas.height
-    const ctx = whiteCanvas.getContext('2d')
-
-    if (!ctx) {
-      console.error('context does not exist')
-      return
-    }
-
-    // 흰색 배경 먼저 그리기
-    ctx.fillStyle = 'white'
-    ctx.fillRect(0, 0, whiteCanvas.width, whiteCanvas.height)
-
-    // 원래 캔버스 내용 복사
-    ctx.drawImage(canvas, 0, 0)
-
-    // dataURL로 저장
-    const dataURL = whiteCanvas.toDataURL('image/png')
-    console.warn('dataURL', dataURL)
-
-    const a = document.createElement('a')
-    a.href = dataURL
-    a.download = 'canvas_image.png'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  }
 
   const clearCanvas = (): void => {
     const canvas = canvasRef.current
@@ -127,17 +69,44 @@ const DrawingCanvas = () => {
     ctxRef.current.clearRect(0, 0, canvas.width, canvas.height)
   }
 
+  const uploadSketch = (): void => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    uploadSketchUtil({
+      canvas,
+      prompt: prompt.message,
+      clearPrompt: () => dispatch(promptActions.clearPrompt()),
+      createSketch,
+      onSuccess: () => setDownLoadable(true)
+    })
+  }
+
+  const reinferenceImage = (): void => {
+    // if (uploadedImageUrl == defaultImage) return
+    uploadImageUtil({
+      image: uploadedImageUrl,
+      prompt: prompt.message,
+      clearPrompt: () => dispatch(promptActions.clearPrompt()),
+      createSketch,
+      onSuccess: () => {}
+    })
+  }
+
+  const saveImage = () => {
+    const canvas = canvasRef.current
+    if (!canvas) {
+      console.error('Canvas not found')
+      return
+    }
+    saveCanvasImage(canvas)
+  }
+
   const saveResult = async (): Promise<void> => {
     if (!imgRef.current) return
-
-    const canvas = await html2canvas(imgRef.current)
-    const dataUrl = canvas.toDataURL('image/png')
-
-    const link = document.createElement('a')
-    link.href = dataUrl
-    link.download = 'captured-image.png'
-    link.click()
+    await saveHtmlElementAsImage(imgRef.current)
   }
+
   return (
     <>
       <div className="mx-auto">
@@ -145,7 +114,7 @@ const DrawingCanvas = () => {
         <div className="flex">
           <div className="flex-1"></div>
           <canvas
-            className="mb-2.5 flex-1"
+            className="mb-2.5 flex-1 bg-white shadow-md rounded-xl"
             ref={canvasRef}
             width={300}
             height={300}
@@ -176,10 +145,15 @@ const DrawingCanvas = () => {
           className="w-[25px] h-[25px] mx-auto my-3">
           <img src="src/assets/reload.png" />
         </div>
+        <button
+          className={`my-3 ${isErasing ? 'bg-red-500' : 'bg-gray-500'} hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-2xl`}
+          onClick={() => setIsErasing(prev => !prev)}>
+          {isErasing ? '지우개 끄기' : '지우개 켜기'}
+        </button>
         <div className="grid grid-cols-2 gap-4 w-[300px] mx-auto">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
-            onClick={uploadImage}>
+            onClick={uploadSketch}>
             이미지 생성
           </button>
           <button
@@ -188,13 +162,14 @@ const DrawingCanvas = () => {
             다운로드
           </button>
         </div>
-        {status && <p className="font-bold">Server status : {status}</p>}
+        {status && (
+          <p
+            className="font-bold"
+            data-testid="status">
+            Server status : {status}
+          </p>
+        )}
         <p>프롬프트 {prompt.message}</p>
-        <p
-          className="font-bold"
-          data-testid="uploadImageUrl">
-          uploadImageUrl : {uploadedImageUrl}{' '}
-        </p>
         {/* API 응답 받은 이미지 표시 */}
         <div className="flex">
           <div className="flex-1"></div>
@@ -204,7 +179,8 @@ const DrawingCanvas = () => {
               {/* {progress > 0 && <p>Uploading... {progress}%</p>} */}
               <img
                 ref={imgRef}
-                className="mx-auto"
+                data-testid="uploadImageUrl"
+                className="mx-auto bg-white shadow-md rounded-xl"
                 src={uploadedImageUrl}
                 alt="Uploaded"
                 style={{ width: '300px', border: '1px solid gray' }}
@@ -226,7 +202,7 @@ const DrawingCanvas = () => {
         <button
           className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
             disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={uploadImage}>
+          onClick={reinferenceImage}>
           재요청
         </button>
       </div>
