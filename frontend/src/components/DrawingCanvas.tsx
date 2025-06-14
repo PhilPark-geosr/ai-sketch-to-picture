@@ -141,9 +141,9 @@ const DrawingCanvas = () => {
           </div>
         </div>
 
-        <div className="flex mx-auto my-3">
+        <div className="flex w-[300px] mx-auto  my-3">
           <button
-            className={`my-3 ${isErasing ? 'bg-red-500' : 'bg-gray-500'} hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-2xl`}
+            className={`my-3 ${isErasing ? 'bg-red-500' : 'bg-gray-500'} hover:bg-gray-700 mx-auto w-[60px] text-white font-bold py-2 px-4 rounded-2xl`}
             onClick={() => setIsErasing(prev => !prev)}>
             <img
               src={eraser}
@@ -152,7 +152,7 @@ const DrawingCanvas = () => {
           </button>
           <img
             onClick={clearCanvas}
-            className="mx-auto w-[25px] h-[25px] "
+            className="mx-auto w-[30px] h-[30px] my-4 "
             src="src/assets/reload.png"
           />
         </div>
