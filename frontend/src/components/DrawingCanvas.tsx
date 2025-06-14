@@ -198,20 +198,21 @@ const DrawingCanvas = () => {
             <MultilineTextFields />
           </div>
         </div>
-
-        <button
-          disabled={!downloadable}
-          className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
+        <div className="grid grid-cols-2 gap-4 w-[300px] mx-auto">
+          <button
+            className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
             disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={saveResult}>
-          결과 다운로드
-        </button>
-        <button
-          className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
+            onClick={reinferenceImage}>
+            재요청
+          </button>
+          <button
+            disabled={!downloadable}
+            className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
             disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={reinferenceImage}>
-          재요청
-        </button>
+            onClick={saveResult}>
+            결과 다운로드
+          </button>
+        </div>
       </div>
     </>
   )
