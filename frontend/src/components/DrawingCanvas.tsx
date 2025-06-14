@@ -8,7 +8,9 @@ import { uploadImageUtil, uploadSketchUtil } from '../utils/uploadImage'
 import { saveCanvasImage, saveHtmlElementAsImage } from '../utils/canvasUtils'
 import defaultImage from '@/assets/chair.png'
 import eraser from '@/assets/eraser.png'
+import SearchDialog from './modals/SearchDialog'
 const DrawingCanvas = () => {
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
@@ -77,9 +79,14 @@ const DrawingCanvas = () => {
     uploadSketchUtil({
       canvas,
       prompt: prompt.message,
-      clearPrompt: () => dispatch(promptActions.clearPrompt()),
+      clearPrompt: () => {
+        dispatch(promptActions.clearPrompt())
+        dialogRef.current?.showModal()
+      },
       createSketch,
-      onSuccess: () => setDownLoadable(true)
+      onSuccess: () => {
+        setDownLoadable(true)
+      }
     })
   }
 
@@ -88,7 +95,9 @@ const DrawingCanvas = () => {
     uploadImageUtil({
       image: uploadedImageUrl,
       prompt: prompt.message,
-      clearPrompt: () => dispatch(promptActions.clearPrompt()),
+      clearPrompt: () => {
+        dispatch(promptActions.clearPrompt())
+      },
       createSketch,
       onSuccess: () => {}
     })
@@ -110,6 +119,7 @@ const DrawingCanvas = () => {
 
   return (
     <>
+      <SearchDialog ref={dialogRef} />
       <div className="mx-auto">
         <p className="text-center font-semibold"> Draw here!</p>
         <div className="flex">
