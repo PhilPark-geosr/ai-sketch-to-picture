@@ -7,6 +7,7 @@ import MultilineTextFields from './MultilineTextFields'
 import { uploadImageUtil, uploadSketchUtil } from '../utils/uploadImage'
 import { saveCanvasImage, saveHtmlElementAsImage } from '../utils/canvasUtils'
 import defaultImage from '@/assets/chair.png'
+import eraser from '@/assets/eraser.png'
 const DrawingCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
@@ -83,7 +84,7 @@ const DrawingCanvas = () => {
   }
 
   const reinferenceImage = (): void => {
-    // if (uploadedImageUrl == defaultImage) return
+    if (uploadedImageUrl == defaultImage) return
     uploadImageUtil({
       image: uploadedImageUrl,
       prompt: prompt.message,
@@ -140,16 +141,22 @@ const DrawingCanvas = () => {
           </div>
         </div>
 
-        <div
-          onClick={clearCanvas}
-          className="w-[25px] h-[25px] mx-auto my-3">
-          <img src="src/assets/reload.png" />
+        <div className="flex mx-auto my-3">
+          <button
+            className={`my-3 ${isErasing ? 'bg-red-500' : 'bg-gray-500'} hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-2xl`}
+            onClick={() => setIsErasing(prev => !prev)}>
+            <img
+              src={eraser}
+              width={30}
+            />
+          </button>
+          <img
+            onClick={clearCanvas}
+            className="mx-auto w-[25px] h-[25px] "
+            src="src/assets/reload.png"
+          />
         </div>
-        <button
-          className={`my-3 ${isErasing ? 'bg-red-500' : 'bg-gray-500'} hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-2xl`}
-          onClick={() => setIsErasing(prev => !prev)}>
-          {isErasing ? '지우개 끄기' : '지우개 켜기'}
-        </button>
+
         <div className="grid grid-cols-2 gap-4 w-[300px] mx-auto">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
