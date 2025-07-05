@@ -22,6 +22,9 @@ const DrawingCanvas = () => {
   const prompt = useSelector((state: any) => state.prompt)
   const dispatch = useDispatch()
 
+  const [undoStack, setUndoStack] = useState<ImageData[]>([])
+  const [redoStack, setRedoStack] = useState<ImageData[]>([])
+
   const {
     result: { data, status, mutateAsync: createSketch },
     uploadedImageUrl
@@ -29,12 +32,68 @@ const DrawingCanvas = () => {
 
   console.warn('Drawing canvas load!')
 
+  const saveState = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    console.warn('this.ctx', ctx)
+    const currentSnapShot: ImageData = ctx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    )
+    setUndoStack(prev => [...prev, currentSnapShot])
+    setRedoStack([])
+  }
+
+  const undo = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    if (undoStack.length === 0) return
+
+    const newUndoStack = [...undoStack]
+    const snapshot = newUndoStack.pop()!
+
+    const current = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const newRedoStack = [...redoStack, current]
+
+    ctx.putImageData(snapshot, 0, 0)
+    setUndoStack(newUndoStack)
+    setRedoStack(newRedoStack)
+  }
+
+  const redo = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    if (redoStack.length === 0) return
+
+    const newRedoStack = [...redoStack]
+    const snapshot = newRedoStack.pop()!
+
+    const current = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const newUndoStack = [...undoStack, current]
+
+    ctx.putImageData(snapshot, 0, 0)
+    setRedoStack(newRedoStack)
+    setUndoStack(newUndoStack)
+  }
+
   const startDrawing = (event: React.MouseEvent): void => {
     const canvas = canvasRef.current
     if (!canvas) return
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
+    saveState()
 
     ctxRef.current = ctx
     ctx.beginPath()
@@ -45,6 +104,7 @@ const DrawingCanvas = () => {
   const draw = (event: React.MouseEvent): void => {
     if (!isDrawing || !ctxRef.current) return
     const ctx = ctxRef.current
+
     // 지우개일 경우 지우기 모드
     if (isErasing) {
       ctx.globalCompositeOperation = 'destination-out'
@@ -67,7 +127,7 @@ const DrawingCanvas = () => {
   const clearCanvas = (): void => {
     const canvas = canvasRef.current
     if (!canvas || !ctxRef.current) return
-
+    saveState()
     // 캔버스를 투명하게 지우기
     ctxRef.current.clearRect(0, 0, canvas.width, canvas.height)
   }
@@ -151,7 +211,7 @@ const DrawingCanvas = () => {
           </div>
         </div>
 
-        <div className="flex w-[300px] mx-auto  my-3">
+        <div className="flex w-[300px] mx-auto my-3">
           <button
             className={`my-3 ${isErasing ? 'bg-red-500' : 'bg-gray-500'} hover:bg-gray-700 mx-auto w-[60px] text-white font-bold py-2 px-4 rounded-2xl`}
             onClick={() => setIsErasing(prev => !prev)}>
@@ -160,11 +220,21 @@ const DrawingCanvas = () => {
               width={30}
             />
           </button>
-          <img
-            onClick={clearCanvas}
+          <button
             className="mx-auto w-[30px] h-[30px] my-4 "
-            src="src/assets/reload.png"
-          />
+            onClick={clearCanvas}>
+            <img src="src/assets/reload.png" />
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
+            onClick={undo}>
+            undo
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
+            onClick={redo}>
+            redo
+          </button>
         </div>
 
         <div className="grid grid-cols-2 gap-4 w-[300px] mx-auto">
