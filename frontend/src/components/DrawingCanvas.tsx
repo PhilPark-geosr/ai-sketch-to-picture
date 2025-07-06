@@ -9,6 +9,8 @@ import { saveCanvasImage, saveHtmlElementAsImage } from '../utils/canvasUtils'
 import defaultImage from '@/assets/chair.png'
 import eraser from '@/assets/eraser.png'
 import SearchDialog from './modals/SearchDialog'
+import Toolbar from './Toolbar'
+
 const DrawingCanvas = () => {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -25,6 +27,8 @@ const DrawingCanvas = () => {
   const [undoStack, setUndoStack] = useState<ImageData[]>([])
   const [redoStack, setRedoStack] = useState<ImageData[]>([])
 
+  const [penColor, setPenColor] = useState('#000000')
+  const [penWidth, setPenWidth] = useState(2)
   const {
     result: { data, status, mutateAsync: createSketch },
     uploadedImageUrl
@@ -108,10 +112,11 @@ const DrawingCanvas = () => {
     // 지우개일 경우 지우기 모드
     if (isErasing) {
       ctx.globalCompositeOperation = 'destination-out'
-      ctx.lineWidth = 20 // 지우개 크기 설정
+      ctx.lineWidth = 20
     } else {
       ctx.globalCompositeOperation = 'source-over'
-      ctx.lineWidth = 2 // 일반 선 굵기
+      ctx.lineWidth = penWidth
+      ctx.strokeStyle = penColor
     }
     ctxRef.current.lineTo(event.nativeEvent.offsetX, event.nativeEvent.offsetY)
     ctxRef.current.stroke()
@@ -235,6 +240,14 @@ const DrawingCanvas = () => {
             onClick={redo}>
             redo
           </button>
+        </div>
+        <div className="w-[300px] mx-auto my-3">
+          <Toolbar
+            penColor={penColor}
+            setPenColor={setPenColor}
+            penWidth={penWidth}
+            setPenWidth={setPenWidth}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-4 w-[300px] mx-auto">
