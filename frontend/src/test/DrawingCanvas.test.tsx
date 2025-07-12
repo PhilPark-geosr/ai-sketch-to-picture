@@ -9,6 +9,7 @@ import '@testing-library/jest-dom' // ToBeIndocument()등의 메소드를 쓰려
 import * as sketchHook from '../hooks/sketch'
 import configureStore from 'redux-mock-store'
 import { Provider } from 'react-redux'
+import { MemoryRouter } from 'react-router-dom'
 const mockStore = configureStore([])
 describe('DrawingCanvas', () => {
   let store: ReturnType<typeof mockStore>
@@ -40,9 +41,11 @@ describe('DrawingCanvas', () => {
     // useCreateSketch 훅을 모킹
 
     render(
-      <Provider store={store}>
-        <DrawingCanvas />
-      </Provider>
+      <MemoryRouter>
+        <Provider store={store}>
+          <DrawingCanvas />
+        </Provider>
+      </MemoryRouter>
     )
     expect(screen.getByTestId('status')).toHaveTextContent('idle')
   })
@@ -65,9 +68,11 @@ describe('DrawingCanvas', () => {
       uploadedImageUrl: successImage
     })
     render(
-      <Provider store={store}>
-        <DrawingCanvas />
-      </Provider>
+      <MemoryRouter>
+        <Provider store={store}>
+          <DrawingCanvas />
+        </Provider>
+      </MemoryRouter>
     )
     //상태 잘 넘어오는지 확인
     expect(screen.getByTestId('status')).toHaveTextContent('success')
