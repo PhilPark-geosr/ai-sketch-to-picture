@@ -7,7 +7,12 @@ import MultilineTextFields from './MultilineTextFields'
 import { uploadImageUtil, uploadSketchUtil } from '../utils/uploadImage'
 import { saveCanvasImage, saveHtmlElementAsImage } from '../utils/canvasUtils'
 import defaultImage from '@/assets/chair.png'
+import eraser from '@/assets/eraser.png'
+import SearchDialog from './modals/SearchDialog'
+import Toolbar from './Toolbar'
+
 const DrawingCanvas = () => {
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
@@ -19,6 +24,11 @@ const DrawingCanvas = () => {
   const prompt = useSelector((state: any) => state.prompt)
   const dispatch = useDispatch()
 
+  const [undoStack, setUndoStack] = useState<ImageData[]>([])
+  const [redoStack, setRedoStack] = useState<ImageData[]>([])
+
+  const [penColor, setPenColor] = useState('#000000')
+  const [penWidth, setPenWidth] = useState(2)
   const {
     result: { data, status, mutateAsync: createSketch },
     uploadedImageUrl
@@ -26,12 +36,68 @@ const DrawingCanvas = () => {
 
   console.warn('Drawing canvas load!')
 
+  const saveState = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    console.warn('this.ctx', ctx)
+    const currentSnapShot: ImageData = ctx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    )
+    setUndoStack(prev => [...prev, currentSnapShot])
+    setRedoStack([])
+  }
+
+  const undo = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    if (undoStack.length === 0) return
+
+    const newUndoStack = [...undoStack]
+    const snapshot = newUndoStack.pop()!
+
+    const current = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const newRedoStack = [...redoStack, current]
+
+    ctx.putImageData(snapshot, 0, 0)
+    setUndoStack(newUndoStack)
+    setRedoStack(newRedoStack)
+  }
+
+  const redo = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    if (redoStack.length === 0) return
+
+    const newRedoStack = [...redoStack]
+    const snapshot = newRedoStack.pop()!
+
+    const current = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const newUndoStack = [...undoStack, current]
+
+    ctx.putImageData(snapshot, 0, 0)
+    setRedoStack(newRedoStack)
+    setUndoStack(newUndoStack)
+  }
+
   const startDrawing = (event: React.MouseEvent): void => {
     const canvas = canvasRef.current
     if (!canvas) return
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
+    saveState()
 
     ctxRef.current = ctx
     ctx.beginPath()
@@ -42,13 +108,15 @@ const DrawingCanvas = () => {
   const draw = (event: React.MouseEvent): void => {
     if (!isDrawing || !ctxRef.current) return
     const ctx = ctxRef.current
+
     // 지우개일 경우 지우기 모드
     if (isErasing) {
       ctx.globalCompositeOperation = 'destination-out'
-      ctx.lineWidth = 20 // 지우개 크기 설정
+      ctx.lineWidth = 20
     } else {
       ctx.globalCompositeOperation = 'source-over'
-      ctx.lineWidth = 2 // 일반 선 굵기
+      ctx.lineWidth = penWidth
+      ctx.strokeStyle = penColor
     }
     ctxRef.current.lineTo(event.nativeEvent.offsetX, event.nativeEvent.offsetY)
     ctxRef.current.stroke()
@@ -64,7 +132,7 @@ const DrawingCanvas = () => {
   const clearCanvas = (): void => {
     const canvas = canvasRef.current
     if (!canvas || !ctxRef.current) return
-
+    saveState()
     // 캔버스를 투명하게 지우기
     ctxRef.current.clearRect(0, 0, canvas.width, canvas.height)
   }
@@ -76,18 +144,25 @@ const DrawingCanvas = () => {
     uploadSketchUtil({
       canvas,
       prompt: prompt.message,
-      clearPrompt: () => dispatch(promptActions.clearPrompt()),
+      clearPrompt: () => {
+        dispatch(promptActions.clearPrompt())
+        dialogRef.current?.showModal()
+      },
       createSketch,
-      onSuccess: () => setDownLoadable(true)
+      onSuccess: () => {
+        setDownLoadable(true)
+      }
     })
   }
 
   const reinferenceImage = (): void => {
-    // if (uploadedImageUrl == defaultImage) return
+    if (uploadedImageUrl == defaultImage) return
     uploadImageUtil({
       image: uploadedImageUrl,
       prompt: prompt.message,
-      clearPrompt: () => dispatch(promptActions.clearPrompt()),
+      clearPrompt: () => {
+        dispatch(promptActions.clearPrompt())
+      },
       createSketch,
       onSuccess: () => {}
     })
@@ -109,6 +184,7 @@ const DrawingCanvas = () => {
 
   return (
     <>
+      <SearchDialog ref={dialogRef} />
       <div className="mx-auto">
         <p className="text-center font-semibold"> Draw here!</p>
         <div className="flex">
@@ -140,16 +216,40 @@ const DrawingCanvas = () => {
           </div>
         </div>
 
-        <div
-          onClick={clearCanvas}
-          className="w-[25px] h-[25px] mx-auto my-3">
-          <img src="src/assets/reload.png" />
+        <div className="flex w-[300px] mx-auto my-3">
+          <button
+            className={`my-3 ${isErasing ? 'bg-red-500' : 'bg-gray-500'} hover:bg-gray-700 mx-auto w-[60px] text-white font-bold py-2 px-4 rounded-2xl`}
+            onClick={() => setIsErasing(prev => !prev)}>
+            <img
+              src={eraser}
+              width={30}
+            />
+          </button>
+          <button
+            className="mx-auto w-[30px] h-[30px] my-4 "
+            onClick={clearCanvas}>
+            <img src="src/assets/reload.png" />
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
+            onClick={undo}>
+            undo
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
+            onClick={redo}>
+            redo
+          </button>
         </div>
-        <button
-          className={`my-3 ${isErasing ? 'bg-red-500' : 'bg-gray-500'} hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-2xl`}
-          onClick={() => setIsErasing(prev => !prev)}>
-          {isErasing ? '지우개 끄기' : '지우개 켜기'}
-        </button>
+        <div className="w-[300px] mx-auto my-3">
+          <Toolbar
+            penColor={penColor}
+            setPenColor={setPenColor}
+            penWidth={penWidth}
+            setPenWidth={setPenWidth}
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-4 w-[300px] mx-auto">
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl"
@@ -191,20 +291,21 @@ const DrawingCanvas = () => {
             <MultilineTextFields />
           </div>
         </div>
-
-        <button
-          disabled={!downloadable}
-          className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
+        <div className="grid grid-cols-2 gap-4 w-[300px] mx-auto">
+          <button
+            className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
             disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={saveResult}>
-          결과 다운로드
-        </button>
-        <button
-          className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
+            onClick={reinferenceImage}>
+            재요청
+          </button>
+          <button
+            disabled={!downloadable}
+            className="my-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-2xl 
             disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={reinferenceImage}>
-          재요청
-        </button>
+            onClick={saveResult}>
+            결과 다운로드
+          </button>
+        </div>
       </div>
     </>
   )
