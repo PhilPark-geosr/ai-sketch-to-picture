@@ -42,7 +42,6 @@ const DrawingCanvas = () => {
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    console.warn('this.ctx', ctx)
     const currentSnapShot: ImageData = ctx.getImageData(
       0,
       0,
@@ -184,7 +183,10 @@ const DrawingCanvas = () => {
 
   return (
     <>
-      <SearchDialog ref={dialogRef} />
+      <SearchDialog
+        imageUrl={uploadedImageUrl}
+        ref={dialogRef}
+      />
       <div className="mx-auto">
         <p className="text-center font-semibold"> Draw here!</p>
         <div className="flex">

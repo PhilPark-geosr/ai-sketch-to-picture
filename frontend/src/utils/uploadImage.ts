@@ -67,3 +67,27 @@ export const uploadImageUtil = async ({
     onSuccess()
   }
 }
+
+export const recommendUtil = async ({
+  image,
+  prompt,
+  createRecommend,
+  onSuccess
+}: {
+  image: string
+  prompt: string
+  createRecommend: (formData: FormData) => Promise<any>
+  onSuccess?: () => void
+}) => {
+  const formData = new FormData()
+  const decodedBlob = await fetch(image)
+  const blob = await decodedBlob.blob()
+
+  formData.append('image', blob, 'needToRecommend.png')
+  formData.append('prompt', prompt)
+
+  const res = await createRecommend(formData)
+  if (res?.image && onSuccess) {
+    onSuccess()
+  }
+}

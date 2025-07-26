@@ -1,12 +1,18 @@
 import React, { forwardRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useCreateRecommend } from '../../hooks/recommend'
+import { recommendUtil } from '../../utils/uploadImage'
 
 interface SearchDialogProps {
   onMove?: () => void // 이동 버튼 클릭 시 동작
+  imageUrl: string
 }
 
 const SearchDialog = forwardRef<HTMLDialogElement, SearchDialogProps>(
-  function SearchDialog({ ...props }, ref) {
+  function SearchDialog({ imageUrl, ...props }, ref: any) {
+    const {
+      result: { status, mutateAsync: createRecommend }
+    } = useCreateRecommend()
     const navigate = useNavigate()
     const handleClose = () => {
       // dialog 태그의 ref가 있을 때 close 호출
@@ -15,6 +21,15 @@ const SearchDialog = forwardRef<HTMLDialogElement, SearchDialogProps>(
       }
     }
     const onMove = (): void => {
+      //api요청
+      recommendUtil({
+        image: imageUrl,
+        prompt: 'ikea style',
+        createRecommend,
+        onSuccess: () => {
+          console.warn('success')
+        }
+      })
       navigate('/recommendation')
     }
     return (
