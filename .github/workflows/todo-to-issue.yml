@@ -1,82 +1,118 @@
-name: PR Checklist to Issues
+# 핵심만 발췌(이슈 생성 후 Project v2에 추가 + Status=To do)
+- name: Parse PR body → create issues → add to Project v2 (TODO)
+  uses: actions/github-script@v7
+  env:
+    PROJECTS_V2_OWNER: 'PhilPark-geosr'   # users/<owner>/projects/<num> 의 owner
+    PROJECTS_V2_NUMBER: '3'
+    PROJECTS_V2_STATUS_FIELD: 'Status'
+    PROJECTS_V2_STATUS_OPTION: 'Todo'    # ← 기본값(To do / In progress / Done)
+  with:
+    script: |
+      const pr = context.payload.pull_request;
+      const body = pr.body || "";
+      const unchecked = Array.from(body.matchAll(/^- \[\s\]\s+(.+?)\s*$/gms)).map(m => m[1]);
+      if (!unchecked.length) { core.info("No unchecked tasks found."); return; }
 
-on:
-  pull_request:
-    types: [opened, edited, reopened]
+      const OWNER = process.env.PROJECTS_V2_OWNER;
+      const PROJECT_NUMBER = Number(process.env.PROJECTS_V2_NUMBER);
+      const STATUS_FIELD_NAME = process.env.PROJECTS_V2_STATUS_FIELD || "Status";
+      const STATUS_OPTION_WANTED = process.env.PROJECTS_V2_STATUS_OPTION || "To do";
+      const gql = github.graphql;
 
-permissions:
-  issues: write
-  pull-requests: read
-
-jobs:
-  convert:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Parse PR body & create issues
-        id: run
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const pr = context.payload.pull_request;
-            const body = pr.body || "";
-
-            // 1) 체크리스트 추출: "- [ ] ..." 만 대상 (완료(- [x])는 제외)
-            //    괄호 뒤 공백 허용, 항목 끝의 공백도 제거
-            const unchecked = Array.from(body.matchAll(/^- \[\s\]\s+(.+?)\s*$/gms)).map(m => m[1]);
-
-            if (!unchecked.length) {
-              core.info("No unchecked tasks found.");
-              return;
-            }
-
-            // 2) 중복 방지: 같은 PR(#번호) + 같은 제목의 이슈가 이미 있는지 확인
-            //    - 정책: 제목을 "PR #123 · {원문}" 형태로 생성해 중복을 줄임
-            //    - 이미 같은 제목의 열린 이슈가 있으면 skip
-            const { owner, repo } = context.repo;
-            const created = [];
-            for (const rawTitle of unchecked) {
-              const title = `PR #${pr.number} · ${rawTitle.trim()}`;
-
-              // 검색(간단한 방어) - 같은 제목의 Open 이슈가 있으면 스킵
-              const search = await github.rest.search.issuesAndPullRequests({
-                q: `repo:${owner}/${repo} is:issue is:open in:title "${title.replace(/"/g, '\\"')}"`
-              });
-              if (search.data.total_count > 0) {
-                core.info(`Skip duplicate: ${title}`);
-                continue;
+      // v2 프로젝트/필드 조회 (user 프로젝트)
+      const { user } = await gql(`
+        query($login:String!,$number:Int!){
+          user(login:$login){
+            projectV2(number:$number){
+              id
+              fields(first:50){
+                nodes{
+                  ... on ProjectV2FieldCommon { id name }
+                  ... on ProjectV2SingleSelectField {
+                    id name
+                    options { id name }
+                  }
+                }
               }
-
-              // 3) 이슈 생성
-              const issue = await github.rest.issues.create({
-                owner, repo,
-                title,
-                body: [
-                  `자동 생성된 TODO 이슈입니다.`,
-                  ``,
-                  `- 원본 PR: #${pr.number}`,
-                  `- 원문 항목: ${rawTitle}`,
-                ].join("\n"),
-                // TODO: 원하는 라벨/담당자 지정
-                labels: ["todo-from-pr"],                // ← 커스텀 라벨
-                // assignees: ["your-github-id"],        // ← 담당자 자동 배정 시
-              });
-
-              created.push(issue.data);
             }
+          }
+        }`,
+        { login: OWNER, number: PROJECT_NUMBER }
+      );
+      const project = user?.projectV2;
+      if (!project) throw new Error("Project v2 not found. Check OWNER/NUMBER.");
 
-            // 4) 생성 결과를 PR에 코멘트
-            if (created.length) {
-              const lines = created.map(i => `- #${i.number} ${i.title}`);
-              await github.rest.issues.createComment({
-                owner, repo,
-                issue_number: pr.number,
-                body: [
-                  `다음 PR 체크리스트 항목을 이슈로 생성했습니다:`,
-                  ...lines
-                ].join("\n")
-              });
-            } else {
-              core.info("No issues created (all duplicates or none).");
+      const fields = project.fields.nodes ?? [];
+      const statusField = fields.find(f => f.name === STATUS_FIELD_NAME);
+      if (!statusField) throw new Error(`Field '${STATUS_FIELD_NAME}' not found.`);
+
+      // 옵션 이름 정규화: "todo" / "to do" / "To-Do" / "inprogress" 등도 허용
+      const norm = s => s.toLowerCase().replace(/\s|[-_]/g, '');
+      const wanted = norm(STATUS_OPTION_WANTED);   // 예: "To do" → "todo"
+      const option = (statusField.options || []).find(o => norm(o.name) === wanted);
+      if (!option) {
+        core.startGroup("Status 옵션 후보(프로젝트에 실제 존재하는 값)");
+        for (const o of statusField.options || []) core.info(`- "${o.name}"`);
+        core.endGroup();
+        throw new Error(`Status option '${STATUS_OPTION_WANTED}' not found. 위 목록에서 정확한 철자를 선택해 env에 넣어주세요.`);
+      }
+
+      async function addIssueToProject(projectId, contentNodeId) {
+        const r = await gql(`
+          mutation($projectId:ID!,$contentId:ID!){
+            addProjectV2ItemById(input:{projectId:$projectId, contentId:$contentId}) {
+              item { id }
             }
+          }`,
+          { projectId, contentId: contentNodeId }
+        );
+        return r.addProjectV2ItemById.item.id;
+      }
 
-            core.setOutput("count", String(created.length));
+      async function setStatus(projectId, itemId, fieldId, optionId) {
+        await gql(`
+          mutation($projectId:ID!,$itemId:ID!,$fieldId:ID!,$optionId:String!){
+            updateProjectV2ItemFieldValue(
+              input:{
+                projectId:$projectId,
+                itemId:$itemId,
+                fieldId:$fieldId,
+                value:{ singleSelectOptionId:$optionId }
+              }
+            ){ projectV2Item{ id } }
+          }`,
+          { projectId, itemId, fieldId: statusField.id, optionId }
+        );
+      }
+
+      const { owner, repo } = context.repo;
+      const created = [];
+      for (const rawTitle of unchecked) {
+        const title = `PR #${pr.number} · ${rawTitle.trim()}`;
+
+        const search = await github.rest.search.issuesAndPullRequests({
+          q: `repo:${owner}/${repo} is:issue is:open in:title "${title.replace(/"/g,'\\"')}"`
+        });
+        if (search.data.total_count > 0) { core.info(`Skip duplicate: ${title}`); continue; }
+
+        const issue = await github.rest.issues.create({
+          owner, repo,
+          title,
+          body: `자동 생성된 TODO 이슈입니다.\n\n- 원본 PR: #${pr.number}\n- 원문 항목: ${rawTitle}`,
+          labels: ["todo-from-pr"]
+        });
+        created.push(issue.data);
+
+        // 프로젝트에 추가 + Status 설정(= To do)
+        const itemId = await addIssueToProject(project.id, issue.data.node_id);
+        await setStatus(project.id, itemId, statusField.id, option.id);
+        core.info(`Added #${issue.data.number} to Project v2 → Status='${STATUS_OPTION_WANTED}'.`);
+      }
+
+      if (created.length) {
+        const lines = created.map(i => `- #${i.number} ${i.title}`);
+        await github.rest.issues.createComment({
+          owner, repo, issue_number: pr.number,
+          body: `체크리스트를 이슈로 만들고 Project(Status=${STATUS_OPTION_WANTED})에 연동했습니다:\n${lines.join('\n')}`
+        });
+      }
