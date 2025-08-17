@@ -25,7 +25,7 @@ jobs:
           # 보통 'Status' 필드
           PROJECTS_V2_STATUS_FIELD: 'Status'
           # 기본 옵션명(대소문자/공백/하이픈 차이는 코드에서 허용)
-          PROJECTS_V2_STATUS_OPTION: 'To do'
+          PROJECTS_V2_STATUS_OPTION: 'Todo'
         with:
           # ⚠️ PAT 권장: Projects v2 쓰기 권한 포함 (예: repo, project, read:org)
           script: |
