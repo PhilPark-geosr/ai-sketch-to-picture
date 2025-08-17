@@ -197,7 +197,10 @@ const DrawingCanvas = () => {
 
   return (
     <>
-      <SearchDialog ref={dialogRef} />
+      <SearchDialog
+        imageUrl={uploadedImageUrl}
+        ref={dialogRef}
+      />
       <div className="mx-auto">
         <p className="text-center font-semibold"> Draw here!</p>
         <div className="flex">
