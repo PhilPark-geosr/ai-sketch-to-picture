@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useCreateSketch } from '../hooks/sketch'
 import BasicSelect from './BasicSelect'
 import { useDispatch, useSelector } from 'react-redux'
@@ -34,15 +34,39 @@ const DrawingCanvas = () => {
     uploadedImageUrl
   } = useCreateSketch()
 
-  console.warn('Drawing canvas load!')
-
-  const saveState = () => {
+  useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
     const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    console.warn('this.ctx', ctx)
+    if (ctx) {
+      ctxRef.current = ctx
+    }
+  })
+
+  const isCanvasPropExist = (): boolean => {
+    if (canvasRef.current && ctxRef.current) return true
+    return false
+  }
+
+  console.warn('Drawing canvas load!')
+
+  const getCtx = (): CanvasRenderingContext2D => {
+    if (!ctxRef.current) throw new Error('Canvas context not initialized')
+    return ctxRef.current
+  }
+
+  const getCanvas = (): HTMLCanvasElement => {
+    if (!canvasRef.current) throw new Error('Canvas not initialized')
+    return canvasRef.current
+  }
+
+  const saveState = () => {
+    if (!isCanvasPropExist()) return
+
+    const ctx = getCtx()
+    const canvas = getCanvas()
+
     const currentSnapShot: ImageData = ctx.getImageData(
       0,
       0,
@@ -54,10 +78,9 @@ const DrawingCanvas = () => {
   }
 
   const undo = () => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (!isCanvasPropExist()) return
+    const ctx = getCtx()
+    const canvas = getCanvas()
 
     if (undoStack.length === 0) return
 
@@ -73,10 +96,9 @@ const DrawingCanvas = () => {
   }
 
   const redo = () => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (!isCanvasPropExist()) return
+    const ctx = getCtx()
+    const canvas = getCanvas()
 
     if (redoStack.length === 0) return
 
@@ -92,14 +114,10 @@ const DrawingCanvas = () => {
   }
 
   const startDrawing = (event: React.MouseEvent): void => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (!isCanvasPropExist()) return
+    const ctx = getCtx()
     saveState()
 
-    ctxRef.current = ctx
     ctx.beginPath()
     ctx.moveTo(event.nativeEvent.offsetX, event.nativeEvent.offsetY)
     setIsDrawing(true)
@@ -107,7 +125,7 @@ const DrawingCanvas = () => {
 
   const draw = (event: React.MouseEvent): void => {
     if (!isDrawing || !ctxRef.current) return
-    const ctx = ctxRef.current
+    const ctx = getCtx()
 
     // 지우개일 경우 지우기 모드
     if (isErasing) {
@@ -123,23 +141,22 @@ const DrawingCanvas = () => {
   }
 
   const stopDrawing = (): void => {
-    if (ctxRef.current) {
-      ctxRef.current.closePath()
-    }
+    const ctx = getCtx()
+    ctx.closePath()
     setIsDrawing(false)
   }
 
   const clearCanvas = (): void => {
-    const canvas = canvasRef.current
-    if (!canvas || !ctxRef.current) return
+    if (!isCanvasPropExist()) return
+    const ctx = getCtx()
+    const canvas = getCanvas()
     saveState()
     // 캔버스를 투명하게 지우기
-    ctxRef.current.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
   }
 
   const uploadSketch = (): void => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+    const canvas = getCanvas()
 
     uploadSketchUtil({
       canvas,
@@ -169,11 +186,7 @@ const DrawingCanvas = () => {
   }
 
   const saveImage = () => {
-    const canvas = canvasRef.current
-    if (!canvas) {
-      console.error('Canvas not found')
-      return
-    }
+    const canvas = getCanvas()
     saveCanvasImage(canvas)
   }
 
