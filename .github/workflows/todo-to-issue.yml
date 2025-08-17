@@ -1,0 +1,82 @@
+name: PR Checklist to Issues
+
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+permissions:
+  issues: write
+  pull-requests: read
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse PR body & create issues
+        id: run
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || "";
+
+            // 1) 체크리스트 추출: "- [ ] ..." 만 대상 (완료(- [x])는 제외)
+            //    괄호 뒤 공백 허용, 항목 끝의 공백도 제거
+            const unchecked = Array.from(body.matchAll(/^- \[\s\]\s+(.+?)\s*$/gms)).map(m => m[1]);
+
+            if (!unchecked.length) {
+              core.info("No unchecked tasks found.");
+              return;
+            }
+
+            // 2) 중복 방지: 같은 PR(#번호) + 같은 제목의 이슈가 이미 있는지 확인
+            //    - 정책: 제목을 "PR #123 · {원문}" 형태로 생성해 중복을 줄임
+            //    - 이미 같은 제목의 열린 이슈가 있으면 skip
+            const { owner, repo } = context.repo;
+            const created = [];
+            for (const rawTitle of unchecked) {
+              const title = `PR #${pr.number} · ${rawTitle.trim()}`;
+
+              // 검색(간단한 방어) - 같은 제목의 Open 이슈가 있으면 스킵
+              const search = await github.rest.search.issuesAndPullRequests({
+                q: `repo:${owner}/${repo} is:issue is:open in:title "${title.replace(/"/g, '\\"')}"`
+              });
+              if (search.data.total_count > 0) {
+                core.info(`Skip duplicate: ${title}`);
+                continue;
+              }
+
+              // 3) 이슈 생성
+              const issue = await github.rest.issues.create({
+                owner, repo,
+                title,
+                body: [
+                  `자동 생성된 TODO 이슈입니다.`,
+                  ``,
+                  `- 원본 PR: #${pr.number}`,
+                  `- 원문 항목: ${rawTitle}`,
+                ].join("\n"),
+                // TODO: 원하는 라벨/담당자 지정
+                labels: ["todo-from-pr"],                // ← 커스텀 라벨
+                // assignees: ["your-github-id"],        // ← 담당자 자동 배정 시
+              });
+
+              created.push(issue.data);
+            }
+
+            // 4) 생성 결과를 PR에 코멘트
+            if (created.length) {
+              const lines = created.map(i => `- #${i.number} ${i.title}`);
+              await github.rest.issues.createComment({
+                owner, repo,
+                issue_number: pr.number,
+                body: [
+                  `다음 PR 체크리스트 항목을 이슈로 생성했습니다:`,
+                  ...lines
+                ].join("\n")
+              });
+            } else {
+              core.info("No issues created (all duplicates or none).");
+            }
+
+            core.setOutput("count", String(created.length));
