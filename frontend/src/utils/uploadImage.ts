@@ -77,7 +77,7 @@ export const recommendUtil = async ({
   image: string
   prompt: string
   createRecommend: (formData: FormData) => Promise<any>
-  onSuccess?: () => void
+  onSuccess?: (res: any) => void
 }) => {
   const formData = new FormData()
   const decodedBlob = await fetch(image)
@@ -86,8 +86,17 @@ export const recommendUtil = async ({
   formData.append('image', blob, 'needToRecommend.png')
   formData.append('prompt', prompt)
 
-  const res = await createRecommend(formData)
-  if (res?.image && onSuccess) {
-    onSuccess()
+  try {
+    const res = await createRecommend(formData)
+    console.warn('recommend API 요청 결과', res)
+
+    if (res?.status === 'success') {
+      onSuccess?.(res)
+    } else {
+      throw new Error(`Recommend API 실패: ${res?.status || '알 수 없음'}`)
+    }
+  } catch (e) {
+    console.error('[recommendUtil] 업로드 실패', e)
+    throw e // 상위에서 catch 가능
   }
 }

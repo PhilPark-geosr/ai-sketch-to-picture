@@ -1,6 +1,7 @@
 //리덕스 툴킷을 이용한 유지보수 하기 편리한 Redux 만들기
 import { configureStore, createSlice } from '@reduxjs/toolkit'
 import { CreateSliceOptions } from '@reduxjs/toolkit'
+import recommendSlice from '../managers/recommend-manager'
 //action type
 export interface StoreState {
   counter: number //상태 정의
@@ -39,7 +40,6 @@ const promptSlice = createSlice({
   initialState: initalPromptState,
   reducers: {
     setPromptBySelectBox(state, action) {
-      // console.warn('prompt setPrompt', action)
       state.category = action.payload.category
       state.value = action.payload.value
       state.message += `${action.payload.category}is ${action.payload.value} `
@@ -57,7 +57,8 @@ const promptSlice = createSlice({
 const store = configureStore({
   reducer: {
     counter: counterSlice.reducer,
-    prompt: promptSlice.reducer
+    prompt: promptSlice.reducer,
+    recommend: recommendSlice.reducer
   }
 })
 export const promptActions = promptSlice.actions

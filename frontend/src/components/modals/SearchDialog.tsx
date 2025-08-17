@@ -2,6 +2,8 @@ import React, { forwardRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCreateRecommend } from '../../hooks/recommend'
 import { recommendUtil } from '../../utils/uploadImage'
+import { useDispatch } from 'react-redux'
+import { recommendActions } from '../../managers/recommend-manager'
 
 interface SearchDialogProps {
   onMove?: () => void // 이동 버튼 클릭 시 동작
@@ -10,6 +12,7 @@ interface SearchDialogProps {
 
 const SearchDialog = forwardRef<HTMLDialogElement, SearchDialogProps>(
   function SearchDialog({ imageUrl, ...props }, ref: any) {
+    const dispatch = useDispatch()
     const {
       result: { status, mutateAsync: createRecommend }
     } = useCreateRecommend()
@@ -26,11 +29,12 @@ const SearchDialog = forwardRef<HTMLDialogElement, SearchDialogProps>(
         image: imageUrl,
         prompt: 'ikea style',
         createRecommend,
-        onSuccess: () => {
-          console.warn('success')
+        onSuccess: res => {
+          dispatch(recommendActions.setResults(res.results)) // 👈 받은 데이터를 dispatch
+          dispatch(recommendActions.setStatus('success'))
+          navigate('/recommendation')
         }
       })
-      navigate('/recommendation')
     }
     return (
       <dialog
