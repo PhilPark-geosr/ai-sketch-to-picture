@@ -1,4 +1,4 @@
-name: PR Checklist to Issues
+name: PR Checklist to Issues + TODO
 
 on:
   pull_request:
@@ -7,37 +7,165 @@ on:
 permissions:
   issues: write
   pull-requests: read
+  contents: read
 
 jobs:
   convert:
     runs-on: ubuntu-latest
     steps:
-      - name: Parse PR body & create issues
+      - name: Parse PR body → create issues → add to Project v2 (Status=To do)
         id: run
         uses: actions/github-script@v7
+        env:
+          # ===== Project v2 설정 =====
+          # 개인 프로젝트면 GitHub 사용자 로그인(예: PhilPark-geosr)
+          PROJECTS_V2_OWNER: 'PhilPark-geosr'
+          # URL 끝 숫자 (예: /projects/3 → '3')
+          PROJECTS_V2_NUMBER: '3'
+          # 보통 'Status' 필드
+          PROJECTS_V2_STATUS_FIELD: 'Status'
+          # 기본 옵션명(대소문자/공백/하이픈 차이는 코드에서 허용)
+          PROJECTS_V2_STATUS_OPTION: 'Todo'
         with:
+          # ⚠️ PAT 권장: Projects v2 쓰기 권한 포함 (예: repo, project, read:org)
           script: |
             const pr = context.payload.pull_request;
             const body = pr.body || "";
 
-            // 1) 체크리스트 추출: "- [ ] ..." 만 대상 (완료(- [x])는 제외)
-            //    괄호 뒤 공백 허용, 항목 끝의 공백도 제거
+            // 1) 체크리스트 추출: "- [ ] " 패턴(미체크만)
             const unchecked = Array.from(body.matchAll(/^- \[\s\]\s+(.+?)\s*$/gms)).map(m => m[1]);
-
             if (!unchecked.length) {
               core.info("No unchecked tasks found.");
               return;
             }
 
-            // 2) 중복 방지: 같은 PR(#번호) + 같은 제목의 이슈가 이미 있는지 확인
-            //    - 정책: 제목을 "PR #123 · {원문}" 형태로 생성해 중복을 줄임
-            //    - 이미 같은 제목의 열린 이슈가 있으면 skip
             const { owner, repo } = context.repo;
             const created = [];
+
+            // ===== Project v2 준비 =====
+            const OWNER = process.env.PROJECTS_V2_OWNER || "";
+            const PROJECT_NUMBER = Number(process.env.PROJECTS_V2_NUMBER || "0");
+            const STATUS_FIELD_NAME = process.env.PROJECTS_V2_STATUS_FIELD || "Status";
+            const STATUS_OPTION_WANTED = process.env.PROJECTS_V2_STATUS_OPTION || "To do";
+
+            const gql = github.graphql;
+
+            // owner가 org인지 user인지 모두 시도
+            async function resolveProjectAndFields() {
+              const orgQuery = `
+                query($login: String!, $number: Int!) {
+                  organization(login: $login) {
+                    projectV2(number: $number) {
+                      id
+                      fields(first: 50) {
+                        nodes {
+                          ... on ProjectV2FieldCommon { id name }
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                            options { id name }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              `;
+              const userQuery = `
+                query($login: String!, $number: Int!) {
+                  user(login: $login) {
+                    projectV2(number: $number) {
+                      id
+                      fields(first: 50) {
+                        nodes {
+                          ... on ProjectV2FieldCommon { id name }
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                            options { id name }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              `;
+
+              let project = null;
+              try {
+                const r = await gql(orgQuery, { login: OWNER, number: PROJECT_NUMBER });
+                project = r.organization?.projectV2 || null;
+              } catch (e) {
+                core.info(`Org project lookup failed (may be user project): ${e.message}`);
+              }
+              if (!project) {
+                const r = await gql(userQuery, { login: OWNER, number: PROJECT_NUMBER });
+                project = r.user?.projectV2 || null;
+              }
+              if (!project) throw new Error("Project v2 not found. Check PROJECTS_V2_OWNER/NUMBER and token scopes.");
+
+              const fields = project.fields?.nodes ?? [];
+              const statusField = fields.find(f => f.name === STATUS_FIELD_NAME);
+              if (!statusField) throw new Error(`Field '${STATUS_FIELD_NAME}' not found in Project v2.`);
+
+              // 옵션 정규화 매칭(공백/하이픈/언더스코어 제거, 소문자 비교)
+              const norm = s => String(s).toLowerCase().replace(/\s|[-_]/g, '');
+              const wanted = norm(STATUS_OPTION_WANTED);
+              const option = (statusField.options || []).find(o => norm(o.name) === wanted);
+
+              if (!option) {
+                core.startGroup("Available Status options");
+                for (const o of statusField.options || []) core.info(`- "${o.name}"`);
+                core.endGroup();
+                throw new Error(`Status option '${STATUS_OPTION_WANTED}' not found. Set PROJECTS_V2_STATUS_OPTION to one of the above.`);
+              }
+
+              return { projectId: project.id, statusFieldId: statusField.id, statusOptionId: option.id };
+            }
+
+            async function addIssueToProject(projectId, contentNodeId) {
+              const mutation = `
+                mutation($projectId: ID!, $contentId: ID!) {
+                  addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+                    item { id }
+                  }
+                }
+              `;
+              const res = await gql(mutation, { projectId, contentId: contentNodeId });
+              return res.addProjectV2ItemById.item.id;
+            }
+
+            async function setSingleSelect(projectId, itemId, fieldId, optionId) {
+              const mutation = `
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                  updateProjectV2ItemFieldValue(
+                    input: {
+                      projectId: $projectId,
+                      itemId: $itemId,
+                      fieldId: $fieldId,
+                      value: { singleSelectOptionId: $optionId }
+                    }
+                  ) {
+                    projectV2Item { id }
+                  }
+                }
+              `;
+              await gql(mutation, { projectId, itemId, fieldId, optionId });
+            }
+
+            let projectInfo = null;
+            try {
+              projectInfo = await resolveProjectAndFields();
+              core.info(`Project resolved. projectId=${projectInfo.projectId}`);
+            } catch (e) {
+              core.warning(`Project v2 not resolved: ${e.message}. Issues will be created but NOT added to project.`);
+            }
+
+            // ===== 이슈 생성 + 프로젝트 연동 =====
             for (const rawTitle of unchecked) {
               const title = `PR #${pr.number} · ${rawTitle.trim()}`;
 
-              // 검색(간단한 방어) - 같은 제목의 Open 이슈가 있으면 스킵
+              // 중복 이슈 방지(같은 제목의 열린 이슈 존재 시 skip)
               const search = await github.rest.search.issuesAndPullRequests({
                 q: `repo:${owner}/${repo} is:issue is:open in:title "${title.replace(/"/g, '\\"')}"`
               });
@@ -46,7 +174,7 @@ jobs:
                 continue;
               }
 
-              // 3) 이슈 생성
+              // 이슈 생성
               const issue = await github.rest.issues.create({
                 owner, repo,
                 title,
@@ -56,22 +184,32 @@ jobs:
                   `- 원본 PR: #${pr.number}`,
                   `- 원문 항목: ${rawTitle}`,
                 ].join("\n"),
-                // TODO: 원하는 라벨/담당자 지정
-                labels: ["todo-from-pr"],                // ← 커스텀 라벨
-                // assignees: ["your-github-id"],        // ← 담당자 자동 배정 시
+                labels: ["todo-from-pr"]
+                // 필요 시 담당자 자동 배정:
+                // assignees: ["your-github-id"],
               });
-
               created.push(issue.data);
+
+              // Project v2에 추가 + Status=To do
+              if (projectInfo) {
+                try {
+                  const itemId = await addIssueToProject(projectInfo.projectId, issue.data.node_id);
+                  await setSingleSelect(projectInfo.projectId, itemId, projectInfo.statusFieldId, projectInfo.statusOptionId);
+                  core.info(`Added issue #${issue.data.number} to Project v2 and set Status='${process.env.PROJECTS_V2_STATUS_OPTION || "To do"}'.`);
+                } catch (e) {
+                  core.warning(`Failed to add issue #${issue.data.number} to Project v2: ${e.message}`);
+                }
+              }
             }
 
-            // 4) 생성 결과를 PR에 코멘트
+            // 결과를 PR에 코멘트
             if (created.length) {
               const lines = created.map(i => `- #${i.number} ${i.title}`);
               await github.rest.issues.createComment({
                 owner, repo,
                 issue_number: pr.number,
                 body: [
-                  `다음 PR 체크리스트 항목을 이슈로 생성했습니다:`,
+                  `다음 PR 체크리스트 항목을 이슈로 생성하고 Project(Status='${process.env.PROJECTS_V2_STATUS_OPTION || "To do"}')에 연동했습니다:`,
                   ...lines
                 ].join("\n")
               });
