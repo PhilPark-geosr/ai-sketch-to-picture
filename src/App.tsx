@@ -3,15 +3,17 @@ import { SafeAreaView, View, Text, StyleSheet, Platform } from "react-native";
 import ImagePickerView from "./components/ImagePickerView";
 import GallerySelectView from "./pages/GallerySelectView";
 import { MemoSketch } from "./components/MemoSketch";
+import TodoList from "./components/TodoList";
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <View>
+      {/* <View>
         <Text style={styles.dummyText}>Hello world!</Text>
-      </View>
+      </View> */}
       {/* <GallerySelectView></GallerySelectView> */}
-      <MemoSketch uploadUrl={""}></MemoSketch>
+      {/* <MemoSketch uploadUrl={""}></MemoSketch> */}
+      <TodoList></TodoList>
     </View>
     
   );
