@@ -82,3 +82,9 @@ const styles = StyleSheet.create({
   }
 })
 ```
+
+### ScrollView와 FlatList
+
+= ScrollView의 단점 : UI가 업데이트 될떄마다 화면 영역 밖에 있는 데이터라도 다 로드한다
+
+- FlatList: 화면에 안보이는 영역은 lazy하게 업데이트한다
