@@ -5,7 +5,8 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView
+  ScrollView,
+  FlatList
 } from 'react-native'
 
 interface TodoState {
@@ -40,15 +41,17 @@ export default function TodoList() {
         />
       </View>
       <View style={styles.goalsContainer}>
-        <ScrollView>
-          {todos.map((todo: TodoState) => (
-            <View
-              key={Math.random()}
-              style={styles.goalItem}>
-              <Text style={styles.goalText}>{todo.content}</Text>
-            </View>
-          ))}
-        </ScrollView>
+        <FlatList
+          data={todos}
+          keyExtractor={(item, index) => `todo-${index}`}
+          renderItem={({ item }: { item: TodoState }) => {
+            return (
+              <View style={styles.goalItem}>
+                <Text style={styles.goalText}>{item.content}</Text>
+              </View>
+            )
+          }}
+        />
       </View>
     </View>
   )
