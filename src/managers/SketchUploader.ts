@@ -17,7 +17,7 @@ export class SketchUploader {
       base64Png,
       fileName = 'memo-sketch.png',
       extraHeaders,
-      fieldName = 'file'
+      fieldName = 'sketch'
     } = opts
 
     // React Native에서 FormData에 직접 base64 추가
@@ -35,7 +35,7 @@ export class SketchUploader {
     }
 
     // 실제 업로드
-    return fetch(uploadUrl, {
+    return fetch(uploadUrl + '/upload', {
       method: 'POST',
       body: form,
       headers
