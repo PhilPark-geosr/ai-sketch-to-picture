@@ -8,20 +8,16 @@ import {
   FlatList
 } from 'react-native'
 import GoalItem from './Goalitem'
+import GoalInput from './GoalInput'
 
 export interface TodoState {
   content: string
 }
 
 export default function TodoList() {
-  const [enteredText, setEnteredText] = useState<string>('')
   const [todos, setTodos] = useState<TodoState[]>([])
-  function goalInputHandler(enteredText: string): void {
-    console.warn('goalInputHandler', enteredText)
-    setEnteredText(enteredText)
-  }
 
-  function addGoalHandler() {
+  function addGoalHandler(enteredText: string): void {
     setTodos((prevTodos: TodoState[]) => [
       ...prevTodos,
       { content: enteredText }
@@ -30,16 +26,7 @@ export default function TodoList() {
 
   return (
     <View style={styles.appContainer}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="your course goal"
-          onChangeText={goalInputHandler}></TextInput>
-        <Button
-          title="Add goal!"
-          onPress={addGoalHandler}
-        />
-      </View>
+      <GoalInput onAddGoal={addGoalHandler} />
       <View style={styles.goalsContainer}>
         <FlatList
           data={todos}
@@ -59,32 +46,7 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 16
   },
-  inputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#cccccc'
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#cccccc',
-    width: '70%',
-    marginRight: 8,
-    padding: 8
-  },
   goalsContainer: {
     flex: 5
-  },
-  goalItem: {
-    margin: 8,
-    padding: 8,
-    borderRadius: 6,
-    backgroundColor: '#5e0acc'
-  },
-  goalText: {
-    color: 'white'
   }
 })
