@@ -7,8 +7,9 @@ import {
   StyleSheet,
   FlatList
 } from 'react-native'
+import GoalItem from './Goalitem'
 
-interface TodoState {
+export interface TodoState {
   content: string
 }
 
@@ -44,11 +45,7 @@ export default function TodoList() {
           data={todos}
           keyExtractor={(item, index) => `todo-${index}`}
           renderItem={({ item }: { item: TodoState }) => {
-            return (
-              <View style={styles.goalItem}>
-                <Text style={styles.goalText}>{item.content}</Text>
-              </View>
-            )
+            return <GoalItem todo={item} />
           }}
         />
       </View>
