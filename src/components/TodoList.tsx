@@ -24,6 +24,13 @@ export default function TodoList() {
     ])
   }
 
+  function deleteHander(item: TodoState) {
+    setTodos((prevTodos: TodoState[]) => {
+      const res = prevTodos.filter(todo => todo.content !== item.content)
+      return res
+    })
+  }
+
   return (
     <View style={styles.appContainer}>
       <GoalInput onAddGoal={addGoalHandler} />
@@ -32,7 +39,12 @@ export default function TodoList() {
           data={todos}
           keyExtractor={(item, index) => `todo-${index}`}
           renderItem={({ item }: { item: TodoState }) => {
-            return <GoalItem todo={item} />
+            return (
+              <GoalItem
+                todo={item}
+                onDelete={deleteHander}
+              />
+            )
           }}
         />
       </View>
