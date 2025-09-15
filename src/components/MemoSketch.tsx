@@ -18,6 +18,7 @@ import * as FileSystem from 'expo-file-system'
 import * as MediaLibrary from 'expo-media-library'
 import type { Stroke, Point } from '../types/sketch'
 import { SketchUploader } from '../managers/SketchUploader'
+import Title from './Title'
 
 type Props = {
   uploadUrl: string
@@ -40,7 +41,6 @@ export const MemoSketch: React.FC<Props> = ({
 }) => {
   const [strokes, setStrokes] = useState<Stroke[]>([])
   const [current, setCurrent] = useState<Stroke | null>(null)
-  const [count, setCount] = useState<number>(0)
   const [imageUrl, setImageUrl] = useState<string>('')
   const [serverImageBlob, setServerImageBlob] = useState<string | null>(null)
   const viewShotRef = useRef<ViewShot>(null)
@@ -49,7 +49,6 @@ export const MemoSketch: React.FC<Props> = ({
   console.log('🔄 MemoSketch 컴포넌트 렌더링')
   console.log('📊 현재 strokes 개수:', strokes.length)
   console.log('📊 현재 current stroke:', current ? '있음' : '없음')
-  console.log('📊 현재 count:', count)
 
   const _safePointFromEvent = (e: GestureResponderEvent): Point | null => {
     const ne: any = e?.nativeEvent
@@ -130,13 +129,6 @@ export const MemoSketch: React.FC<Props> = ({
   const handleClear = () => {
     setStrokes([])
     setCurrent(null)
-  }
-
-  const handleIncrementCount = () => {
-    console.log('🔢 Count 증가 버튼 클릭')
-    console.log('📊 증가 전 count:', count)
-    setCount(count + 1)
-    console.log('📊 증가 후 count:', count + 1)
   }
 
   const handleSave = async () => {
@@ -231,6 +223,9 @@ export const MemoSketch: React.FC<Props> = ({
 
   return (
     <View style={[styles.container, style]}>
+      <Title>
+        <Text>메모앱입니다.</Text>
+      </Title>
       {/* 카드형 래퍼 (그림자/라운드) */}
       <View style={styles.cardOuter}>
         {/* 내부는 라운드에 맞춰 컨텐츠를 자르기 위해 overflow: hidden */}
@@ -294,10 +289,6 @@ export const MemoSketch: React.FC<Props> = ({
         <ToolButton
           label="Gallery"
           onPress={handleSaveToGallery}
-        />
-        <ToolButton
-          label={`Count: ${count}`}
-          onPress={handleIncrementCount}
         />
       </View>
 

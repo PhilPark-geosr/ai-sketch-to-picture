@@ -8,9 +8,9 @@ import TodoList from './components/TodoList'
 export default function App() {
   return (
     <View style={styles.container}>
-      <View>
+      {/* <View>
         <Text style={styles.dummyText}>Hello world!</Text>
-      </View>
+      </View> */}
       {/* <GallerySelectView></GallerySelectView> */}
       <MemoSketch uploadUrl={'set your ip'}></MemoSketch>
       {/* <TodoList></TodoList> */}
