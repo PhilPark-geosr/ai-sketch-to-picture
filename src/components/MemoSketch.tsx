@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import {
   View,
   StyleSheet,
@@ -10,7 +10,8 @@ import {
   Text,
   ViewStyle,
   Alert,
-  Image
+  Image,
+  Modal
 } from 'react-native'
 import Svg, { Path, Rect } from 'react-native-svg'
 import ViewShot from 'react-native-view-shot'
@@ -19,6 +20,10 @@ import * as MediaLibrary from 'expo-media-library'
 import type { Stroke, Point } from '../types/sketch'
 import { SketchUploader } from '../managers/SketchUploader'
 import Title from './Title'
+import ImagePickerView from './ImagePickerView'
+import { GalleryPickerManager } from '../managers/GalleryPickerManager'
+import { PickedAsset } from '../managers/types'
+import ImageModal from './ImageModal'
 
 type Props = {
   uploadUrl: string
@@ -39,6 +44,10 @@ export const MemoSketch: React.FC<Props> = ({
   onUploaded,
   onError
 }) => {
+  const [image, setImage] = useState<PickedAsset | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [modalVisible, setModalVisible] = useState(false)
   const [strokes, setStrokes] = useState<Stroke[]>([])
   const [current, setCurrent] = useState<Stroke | null>(null)
   const [imageUrl, setImageUrl] = useState<string>('')
@@ -221,8 +230,38 @@ export const MemoSketch: React.FC<Props> = ({
     }
   }
 
+  const handleOpenGallery = useCallback(async () => {
+    setError(null)
+    setBusy(true)
+    try {
+      const pickedImage: PickedAsset =
+        await await GalleryPickerManager.pickImage({
+          includeBase64: true, // 업로드가 필요하다면 true로 변경
+          quality: 0.92
+        })
+      if (pickedImage) setImage(pickedImage)
+
+      //modal open
+      openModal()
+    } catch (e: any) {
+      setError(e?.message ?? String(e))
+    } finally {
+      setBusy(false)
+    }
+  }, [])
+
+  function openModal() {
+    setModalVisible(true)
+  }
   return (
     <View style={[styles.container, style]}>
+      {modalVisible && (
+        <ImageModal
+          modalVisible={modalVisible}
+          onClosed={() => setModalVisible(false)}
+          image={image}
+        />
+      )}
       <Title>
         <Text>메모앱입니다.</Text>
       </Title>
@@ -287,8 +326,12 @@ export const MemoSketch: React.FC<Props> = ({
           onPress={handleSave}
         />
         <ToolButton
-          label="Gallery"
+          label="save"
           onPress={handleSaveToGallery}
+        />
+        <ToolButton
+          label="Gallery"
+          onPress={busy ? undefined : handleOpenGallery}
         />
       </View>
 
