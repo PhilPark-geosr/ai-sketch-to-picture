@@ -9,6 +9,7 @@ import {
   Image
 } from 'react-native'
 import { PickedAsset } from '../managers/types'
+import { SketchUploader } from '../managers/SketchUploader'
 
 interface Props {
   modalVisible: boolean
@@ -16,6 +17,22 @@ interface Props {
   image: PickedAsset
 }
 export default function ImageModal({ modalVisible, onClosed, image }: Props) {
+  async function onClickRecommend(): Promise<void> {
+    console.warn('image', image)
+    const uploadUrl = 'http://112.160.104.112:5000/recommend'
+    const res = await SketchUploader.uploadPngBase64({
+      uploadUrl,
+      base64Png: image.base64,
+      fileName: 'memo-sketch.png'
+    })
+
+    console.log('✅ 서버 업로드 완료:', res.status)
+    // console.log('✅ 서버 업로드 결과:', res)
+    const data = await res.json()
+    console.log('✅ 서버 업로드 결과:', data)
+    onClosed()
+  }
+
   return (
     <Modal
       animationType="slide"
@@ -40,7 +57,7 @@ export default function ImageModal({ modalVisible, onClosed, image }: Props) {
           />
           <Pressable
             style={[styles.button, styles.buttonClose]}
-            onPress={() => onClosed()}>
+            onPress={() => onClickRecommend()}>
             <Text style={styles.textStyle}>제품 추천 받기</Text>
           </Pressable>
         </View>
