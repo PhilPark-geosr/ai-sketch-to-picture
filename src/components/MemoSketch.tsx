@@ -15,7 +15,7 @@ import {
 } from 'react-native'
 import Svg, { Path, Rect } from 'react-native-svg'
 import ViewShot from 'react-native-view-shot'
-import * as FileSystem from 'expo-file-system'
+import * as FileSystem from 'expo-file-system/legacy'
 import * as MediaLibrary from 'expo-media-library'
 import type { Stroke, Point } from '../types/sketch'
 import { SketchUploader } from '../managers/SketchUploader'
@@ -163,7 +163,7 @@ export const MemoSketch: React.FC<Props> = ({
       // 파일을 base64로 변환
       console.log('🔄 파일을 base64로 변환 중...')
       const base64 = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.Base64
+        encoding: 'base64'
       })
       console.log('📸 변환된 base64 길이:', base64?.length || 0)
       console.log('📸 base64 시작 부분:', base64?.substring(0, 50) || '없음')
@@ -174,9 +174,10 @@ export const MemoSketch: React.FC<Props> = ({
 
       console.log('🚀 서버 업로드 시작...')
       const res = await SketchUploader.uploadPngBase64({
-        uploadUrl,
+        uploadUrl: 'set your ip',
         base64Png: base64,
-        fileName: 'memo-sketch.png'
+        fileName: 'memo-sketch.png',
+        fieldName: 'sketch'
       })
       console.log('✅ 서버 업로드 완료:', res.status)
       // console.log('✅ 서버 업로드 결과:', res)

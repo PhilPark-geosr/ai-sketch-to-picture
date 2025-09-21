@@ -19,15 +19,16 @@ interface Props {
 export default function ImageModal({ modalVisible, onClosed, image }: Props) {
   async function onClickRecommend(): Promise<void> {
     console.warn('image', image)
-    const uploadUrl = 'http://112.160.104.112:5000/recommend'
+    const uploadUrl = 'set your ip'
     const res = await SketchUploader.uploadPngBase64({
       uploadUrl,
       base64Png: image.base64,
-      fileName: 'memo-sketch.png'
+      fileName: 'memo-sketch.png',
+      fieldName: 'image'
     })
 
     console.log('✅ 서버 업로드 완료:', res.status)
-    // console.log('✅ 서버 업로드 결과:', res)
+    console.log('✅ 서버 업로드 결과:', res)
     const data = await res.json()
     console.log('✅ 서버 업로드 결과:', data)
     onClosed()

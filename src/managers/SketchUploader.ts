@@ -11,22 +11,28 @@ export class SketchUploader {
     base64Png: string // "iVBORw0..." (data URI prefix 없음)
     extraHeaders?: Record<string, string>
     fieldName?: string // multipart 필드명 (기본: "file")
+    prompt?: string // prompt
   }): Promise<Response> {
     const {
       uploadUrl,
       base64Png,
       fileName = 'memo-sketch.png',
       extraHeaders,
-      fieldName = 'sketch'
+      fieldName,
+      prompt = 'realistic image'
     } = opts
 
     // React Native에서 FormData에 직접 base64 추가
     const form = new FormData()
+    console.warn('fieldName', fieldName)
+    console.warn('base64Png', base64Png)
     form.append(fieldName, {
       uri: `data:image/png;base64,${base64Png}`,
       type: 'image/png',
       name: fileName
     } as any)
+
+    form.append('prompt', prompt)
 
     // 필요 시 커스텀 헤더 추가
     const headers: Record<string, string> = {
@@ -35,7 +41,7 @@ export class SketchUploader {
     }
 
     // 실제 업로드
-    return fetch(uploadUrl + '/upload', {
+    return fetch(uploadUrl, {
       method: 'POST',
       body: form,
       headers
