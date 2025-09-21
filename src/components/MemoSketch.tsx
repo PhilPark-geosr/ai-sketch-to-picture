@@ -55,9 +55,9 @@ export const MemoSketch: React.FC<Props> = ({
   const viewShotRef = useRef<ViewShot>(null)
 
   // 컴포넌트 렌더링 추적
-  console.log('🔄 MemoSketch 컴포넌트 렌더링')
-  console.log('📊 현재 strokes 개수:', strokes.length)
-  console.log('📊 현재 current stroke:', current ? '있음' : '없음')
+  // console.log('🔄 MemoSketch 컴포넌트 렌더링')
+  // console.log('📊 현재 strokes 개수:', strokes.length)
+  // console.log('📊 현재 current stroke:', current ? '있음' : '없음')
 
   const _safePointFromEvent = (e: GestureResponderEvent): Point | null => {
     const ne: any = e?.nativeEvent
@@ -234,15 +234,15 @@ export const MemoSketch: React.FC<Props> = ({
     setError(null)
     setBusy(true)
     try {
-      const pickedImage: PickedAsset =
-        await await GalleryPickerManager.pickImage({
-          includeBase64: true, // 업로드가 필요하다면 true로 변경
-          quality: 0.92
-        })
-      if (pickedImage) setImage(pickedImage)
-
-      //modal open
-      openModal()
+      const pickedImage: PickedAsset = await GalleryPickerManager.pickImage({
+        includeBase64: true, // 업로드가 필요하다면 true로 변경
+        quality: 0.92
+      })
+      if (pickedImage) {
+        setImage(pickedImage)
+        //modal open
+        openModal()
+      }
     } catch (e: any) {
       setError(e?.message ?? String(e))
     } finally {

@@ -41,7 +41,7 @@ export default function ImageModal({ modalVisible, onClosed, image }: Props) {
           <Pressable
             style={[styles.button, styles.buttonClose]}
             onPress={() => onClosed()}>
-            <Text style={styles.textStyle}>닫기</Text>
+            <Text style={styles.textStyle}>제품 추천 받기</Text>
           </Pressable>
         </View>
       </View>
