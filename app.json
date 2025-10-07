@@ -4,26 +4,55 @@
     "slug": "RNCourse",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": ".src/assets/icon.png",
+    "icon": "src/assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": ".src/assets/splash-icon.png",
+      "image": "src/assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "이 앱은 사용자의 사진 라이브러리에 접근하여 이미지를 선택하고 저장하는 데 사용됩니다.",
+        "NSPhotoLibraryAddUsageDescription": "이 앱은 사용자의 사진 라이브러리에 스케치를 저장하는 데 사용됩니다."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": ".src/assets/adaptive-icon.png",
+        "foregroundImage": "src/assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.READ_MEDIA_AUDIO"
+      ],
+      "package": "com.anonymous.RNCourse"
     },
     "web": {
-      "favicon": ".src/assets/favicon.png"
+      "favicon": "src/assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "이 앱은 사용자의 사진 라이브러리에 접근하여 이미지를 선택하고 저장하는 데 사용됩니다.",
+          "savePhotosPermission": "이 앱은 사용자의 사진 라이브러리에 스케치를 저장하는 데 사용됩니다.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5e44ccd2-194d-44e0-ace6-dec39950d02d"
+      }
     }
   }
 }

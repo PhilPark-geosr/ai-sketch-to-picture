@@ -20,7 +20,6 @@ import * as MediaLibrary from 'expo-media-library'
 import type { Stroke, Point } from '../types/sketch'
 import { SketchUploader } from '../managers/SketchUploader'
 import Title from './Title'
-import ImagePickerView from './ImagePickerView'
 import { GalleryPickerManager } from '../managers/GalleryPickerManager'
 import { PickedAsset } from '../managers/types'
 import ImageModal from './ImageModal'
@@ -213,7 +212,9 @@ export const MemoSketch: React.FC<Props> = ({
       }
 
       // 권한 요청
-      const { status } = await MediaLibrary.requestPermissionsAsync()
+      const { status } = await MediaLibrary.requestPermissionsAsync(false, [
+        'photo'
+      ])
       if (status !== 'granted') {
         Alert.alert('권한 필요', '갤러리에 저장하려면 권한이 필요합니다.')
         return
