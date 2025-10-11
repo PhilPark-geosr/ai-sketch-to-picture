@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
+    "@react-native-community/slider": "^5.0.1",
     "expo": "54.0.12",
     "expo-dev-client": "~6.0.13",
     "expo-file-system": "~19.0.16",

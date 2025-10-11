@@ -25,6 +25,7 @@ import Title from './Title'
 import { GalleryPickerManager } from '../managers/GalleryPickerManager'
 import { PickedAsset } from '../managers/types'
 import ImageModal from './ImageModal'
+import Slider from '@react-native-community/slider'
 
 type Props = {
   uploadUrl: string
@@ -55,6 +56,13 @@ export const MemoSketch: React.FC<Props> = ({
   const [serverImageBlob, setServerImageBlob] = useState<string | null>(null)
   const viewShotRef = useRef<ViewShot>(null)
   const [text, onChangeText] = useState('')
+
+  //drawing area
+  const [currentStrokeWidth, setCurrentStrokeWidth] = useState(strokeWidth)
+  // 드로어 열림/닫힘 상태
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  // 드래그 제스처를 위한 상태
+  const [drawerHeight, setDrawerHeight] = useState(0)
 
   // 컴포넌트 렌더링 추적
   // console.log('🔄 MemoSketch 컴포넌트 렌더링')
@@ -93,7 +101,7 @@ export const MemoSketch: React.FC<Props> = ({
         const s: Stroke = {
           id: String(Date.now()),
           color: strokeColor,
-          width: strokeWidth,
+          width: currentStrokeWidth,
           points: [p]
         }
         setCurrent(s)
@@ -127,7 +135,7 @@ export const MemoSketch: React.FC<Props> = ({
         })
       }
     })
-  }, [strokeColor, strokeWidth])
+  }, [strokeColor, currentStrokeWidth])
 
   const _toPath = (pts: Point[]) => {
     if (pts.length === 0) return ''
@@ -369,6 +377,34 @@ export const MemoSketch: React.FC<Props> = ({
           </View>
         </View>
       )}
+
+      <View style={styles.drawerContainer}>
+        <Pressable
+          style={styles.dragHandle}
+          onPress={() => setIsDrawerOpen(!isDrawerOpen)}>
+          <View style={styles.arrowIcon}>
+            <Text style={styles.arrowText}>{isDrawerOpen ? '▼' : '▲'}</Text>
+          </View>
+        </Pressable>
+
+        {isDrawerOpen && (
+          <View style={styles.drawerContent}>
+            <Text style={styles.strokeWidthLabel}>
+              펜 두께: {currentStrokeWidth}px
+            </Text>
+            <Slider
+              style={styles.slider}
+              minimumValue={1}
+              maximumValue={20}
+              value={currentStrokeWidth}
+              onValueChange={setCurrentStrokeWidth}
+              step={1}
+              minimumTrackTintColor="#111"
+              maximumTrackTintColor="#e6e6e6"
+            />
+          </View>
+        )}
+      </View>
     </View>
   )
 }
@@ -391,7 +427,8 @@ const RADIUS = 16
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%'
+    width: '100%',
+    flex: 1
     // 카드와 툴바 사이 간격
   },
   // 카드 바깥: 그림자/모서리/테두리
@@ -472,5 +509,80 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     borderColor: '#ccc'
+  },
+
+  // 펜 두꼐 컨테이너
+  strokeWidthContainer: {
+    marginTop: 12,
+    marginBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e6e6e6'
+  },
+  // 드로어 컨테이너
+  drawerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: -5 },
+    elevation: 8
+  },
+
+  // 드래그 핸들 (화살표)
+  dragHandle: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    backgroundColor: '#f8f8f8',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20
+  },
+
+  // 화살표 아이콘
+  arrowIcon: {
+    width: 40,
+    height: 6,
+    backgroundColor: '#ccc',
+    borderRadius: 3,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+
+  // 화살표 텍스트
+  arrowText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: 'bold'
+  },
+
+  // 드로어 내용
+  drawerContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingBottom: 20
+  },
+
+  // 펜 두께 라벨
+  strokeWidthLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 16,
+    textAlign: 'center'
+  },
+
+  // 슬라이더
+  slider: {
+    width: '100%',
+    height: 40
   }
 })
