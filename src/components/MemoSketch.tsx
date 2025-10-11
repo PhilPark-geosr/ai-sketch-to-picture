@@ -11,8 +11,10 @@ import {
   ViewStyle,
   Alert,
   Image,
-  Modal
+  Modal,
+  TextInput
 } from 'react-native'
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
 import Svg, { Path, Rect } from 'react-native-svg'
 import ViewShot from 'react-native-view-shot'
 import * as FileSystem from 'expo-file-system/legacy'
@@ -52,6 +54,7 @@ export const MemoSketch: React.FC<Props> = ({
   const [imageUrl, setImageUrl] = useState<string>('')
   const [serverImageBlob, setServerImageBlob] = useState<string | null>(null)
   const viewShotRef = useRef<ViewShot>(null)
+  const [text, onChangeText] = useState('')
 
   // 컴포넌트 렌더링 추적
   // console.log('🔄 MemoSketch 컴포넌트 렌더링')
@@ -75,10 +78,10 @@ export const MemoSketch: React.FC<Props> = ({
   }
 
   const pan: PanResponderInstance = useMemo(() => {
-    console.log('🔧 PanResponder가 새로 생성되었습니다!')
-    console.log('📊 strokeColor:', strokeColor)
-    console.log('📊 strokeWidth:', strokeWidth)
-    console.log('⏰ 생성 시간:', new Date().toLocaleTimeString())
+    // console.log('🔧 PanResponder가 새로 생성되었습니다!')
+    // console.log('📊 strokeColor:', strokeColor)
+    // console.log('📊 strokeWidth:', strokeWidth)
+    // console.log('⏰ 생성 시간:', new Date().toLocaleTimeString())
 
     return PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -139,7 +142,7 @@ export const MemoSketch: React.FC<Props> = ({
     setCurrent(null)
   }
 
-  const handleSave = async () => {
+  const handleSend = async () => {
     try {
       if (!viewShotRef.current) {
         throw new Error('ViewShot ref is not available')
@@ -176,11 +179,14 @@ export const MemoSketch: React.FC<Props> = ({
         uploadUrl: 'set your ip',
         base64Png: base64,
         fileName: 'memo-sketch.png',
-        fieldName: 'sketch'
+        fieldName: 'sketch',
+        prompt: text
       })
       console.log('✅ 서버 업로드 완료:', res.status)
       // console.log('✅ 서버 업로드 결과:', res)
-      const data = await res.json()
+
+      //TODO: 명세보고 타입지정
+      const data: { image: string } = await res.json()
       // console.log('🖼️ 서버 이미지 blob URL 생성:', data.image)
       setServerImageBlob(data.image)
 
@@ -255,6 +261,7 @@ export const MemoSketch: React.FC<Props> = ({
   function openModal() {
     setModalVisible(true)
   }
+
   return (
     <View style={[styles.container, style]}>
       {modalVisible && (
@@ -264,9 +271,7 @@ export const MemoSketch: React.FC<Props> = ({
           image={image}
         />
       )}
-      <Title>
-        <Text>메모앱입니다.</Text>
-      </Title>
+
       {/* 카드형 래퍼 (그림자/라운드) */}
       <View style={styles.cardOuter}>
         {/* 내부는 라운드에 맞춰 컨텐츠를 자르기 위해 overflow: hidden */}
@@ -325,7 +330,7 @@ export const MemoSketch: React.FC<Props> = ({
         />
         <ToolButton
           label="Send"
-          onPress={handleSave}
+          onPress={handleSend}
         />
         <ToolButton
           label="save"
@@ -334,6 +339,20 @@ export const MemoSketch: React.FC<Props> = ({
         <ToolButton
           label="Gallery"
           onPress={busy ? undefined : handleOpenGallery}
+        />
+      </View>
+
+      {/* TODO: IOS 11이상부터는 SafeAreaView를 사용해야 함 */}
+      <View>
+        <TextInput
+          multiline={true}
+          numberOfLines={4}
+          maxLength={300} // 최소 높이
+          style={styles.input}
+          onChangeText={onChangeText}
+          value={text}
+          placeholder="Tell me about your sketch"
+          textAlignVertical="top"
         />
       </View>
 
@@ -445,5 +464,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     backgroundColor: '#f8f8f8'
+  },
+  input: {
+    height: 100,
+    margin: 12,
+    borderWidth: 2,
+    padding: 10,
+    borderRadius: 10,
+    borderColor: '#ccc'
   }
 })
