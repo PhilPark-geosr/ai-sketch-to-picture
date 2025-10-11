@@ -24,8 +24,8 @@ export class SketchUploader {
 
     // React Native에서 FormData에 직접 base64 추가
     const form = new FormData()
-    console.warn('fieldName', fieldName)
-    console.warn('base64Png', base64Png)
+    // console.warn('fieldName', fieldName)
+    // console.warn('base64Png', base64Png)
     form.append(fieldName, {
       uri: `data:image/png;base64,${base64Png}`,
       type: 'image/png',
@@ -33,6 +33,8 @@ export class SketchUploader {
     } as any)
 
     form.append('prompt', prompt)
+
+    console.warn('form body', form)
 
     // 필요 시 커스텀 헤더 추가
     const headers: Record<string, string> = {
