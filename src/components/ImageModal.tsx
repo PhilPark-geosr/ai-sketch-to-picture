@@ -19,7 +19,7 @@ interface Props {
 export default function ImageModal({ modalVisible, onClosed, image }: Props) {
   async function onClickRecommend(): Promise<void> {
     console.warn('image', image)
-    const uploadUrl = 'http://112.160.104.112:5000/recommend'
+    const uploadUrl = 'set your ip'
     const res = await SketchUploader.uploadPngBase64({
       uploadUrl,
       base64Png: image.base64,

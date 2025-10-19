@@ -184,7 +184,7 @@ export const MemoSketch: React.FC<Props> = ({
 
       console.log('🚀 서버 업로드 시작...')
       const res = await SketchUploader.uploadPngBase64({
-        uploadUrl: 'http://112.160.104.112:5000/upload',
+        uploadUrl: 'set your ip',
         base64Png: base64,
         fileName: 'memo-sketch.png',
         fieldName: 'sketch',
