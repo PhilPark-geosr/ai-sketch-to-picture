@@ -1,13 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react'
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  Text,
-  ViewStyle,
-  Alert,
-  TextInput
-} from 'react-native'
+import { View, StyleSheet, ViewStyle, Alert, TextInput } from 'react-native'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as MediaLibrary from 'expo-media-library'
 import { SketchUploader } from '../managers/SketchUploader'
