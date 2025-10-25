@@ -17,6 +17,7 @@ import ImageModal from './ImageModal'
 import ImageCard from './ImageCard'
 import DrawerSlider from './DrawerSlider'
 import DrawingCanvas, { DrawingCanvasRef } from './DrawingCanvas'
+import ToolButton from './ToolButton'
 
 type Props = {
   uploadUrl: string
@@ -225,20 +226,6 @@ export const MemoSketch: React.FC<Props> = ({
   )
 }
 
-const ToolButton = ({
-  label,
-  onPress
-}: {
-  label: string
-  onPress: () => void
-}) => (
-  <Pressable
-    onPress={onPress}
-    style={styles.btn}>
-    <Text style={styles.btnText}>{label}</Text>
-  </Pressable>
-)
-
 const styles = StyleSheet.create({
   container: {
     width: '100%',
@@ -251,13 +238,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     justifyContent: 'flex-end'
   },
-  btn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: '#111'
-  },
-  btnText: { color: '#fff', fontWeight: '600' },
   input: {
     height: 100,
     margin: 12,
