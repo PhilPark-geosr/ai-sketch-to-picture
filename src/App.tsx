@@ -4,6 +4,7 @@ import ImagePickerView from './components/ImagePickerView'
 import GallerySelectView from './pages/GallerySelectView'
 import { MemoSketch } from './components/MemoSketch'
 import TodoList from './components/TodoList'
+import RecommendView from './components/RecommendView'
 
 export default function App() {
   return (
@@ -12,7 +13,8 @@ export default function App() {
         <Text style={styles.dummyText}>Hello world!</Text>
       </View> */}
       {/* <GallerySelectView></GallerySelectView> */}
-      <MemoSketch uploadUrl={'set your ip'}></MemoSketch>
+      {/* <MemoSketch uploadUrl={'set your ip'}></MemoSketch> */}
+      <RecommendView />
       {/* <TodoList></TodoList> */}
     </View>
   )
