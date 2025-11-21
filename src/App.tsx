@@ -17,10 +17,10 @@ function HomeScreen() {
   );
 }
 
-function MemoSketchWrapper() {
+function MemoSketchWrapper({ navigation }: { navigation: any }) {
   return (
     <View style={styles.container}>
-      <MemoSketch uploadUrl={'set your ip'} />
+      <MemoSketch uploadUrl={'set your ip'} navigation={navigation} />
     </View>
   );
 }

@@ -30,8 +30,10 @@ export default function ImageModal({ modalVisible, onClosed, image }: Props) {
 
     console.log('✅ 서버 업로드 완료:', res.status)
     console.log('✅ 서버 업로드 결과:', res)
-    const data = await res.json()
-    console.log('✅ 서버 업로드 결과:', data)
+
+    //TODO: 네이게이션 완성 되면 다시 주석 해제할 것
+    // const data = await res.json()
+    // console.log('✅ 서버 업로드 결과:', data)
     onClosed()
   }
 
