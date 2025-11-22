@@ -151,15 +151,17 @@ export const MemoSketch: React.FC<Props> = ({
     setModalVisible(true)
   }
 
+  function handleCloseModal(): void {
+    setModalVisible(false)
+    navigation.navigate('Recommend')
+  }
+
   return (
     <View style={[styles.container, style]}>
       {modalVisible && (
         <ImageModal
           modalVisible={modalVisible}
-          onClosed={() => {
-            setModalVisible(false)
-            navigation.navigate('Home')
-          }}
+          onClosed={handleCloseModal}
           image={image}
         />
       )}

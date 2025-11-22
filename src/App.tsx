@@ -9,10 +9,10 @@ import RecommendView from './components/RecommendView'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { NavigationContainer } from '@react-navigation/native'
 
-function HomeScreen() {
+function RecommendViewWrapper() {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Home Screen</Text>
+      <RecommendView />
     </View>
   )
 }
@@ -34,8 +34,8 @@ function RootStack() {
   return (
     <Stack.Navigator initialRouteName="MemoSketchView">
       <Stack.Screen
-        name="Home"
-        component={HomeScreen}
+        name="Recommend"
+        component={RecommendViewWrapper}
       />
       <Stack.Screen
         name="MemoSketchView"
