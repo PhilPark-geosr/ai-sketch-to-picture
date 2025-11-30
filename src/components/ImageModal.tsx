@@ -26,20 +26,25 @@ export default function ImageModal({ modalVisible, onClosed, image }: Props) {
     // console.log('image', JSON.stringify(image))
 
     const uploadUrl = `${SERVER_URL}/recommend`
-    const res = await SketchUploader.uploadPngBase64({
-      uploadUrl,
-      base64Png: image.base64,
-      fileName: 'memo-sketch.png',
-      fieldName: 'image',
-      prompt: 'orange chair, please recommend ikea product'
-    })
+    // console.log('uploadUrl', uploadUrl)
 
-    console.log('✅ 서버 업로드 완료:', res.status)
-    console.log('✅ 서버 업로드 결과:', res)
-
-    const data = await res.json()
-    console.log('✅ 서버 업로드 결과:', data)
-    onClosed(data)
+    try {
+      const res = await SketchUploader.uploadPngBase64({
+        uploadUrl,
+        base64Png: image.base64,
+        fileName: 'memo-sketch.png',
+        fieldName: 'image',
+        prompt: 'white chair, please recommend ikea product'
+      })
+      console.log('✅ 서버 업로드 완료:', res.status)
+      console.log('✅ 서버 업로드 결과:', res)
+      const data = await res.json()
+      console.log('✅ 서버 업로드 결과:', data)
+      onClosed(data)
+    } catch (error) {
+      console.error('서버 업로드 에러:', error)
+      onClosed()
+    }
   }
 
   return (
