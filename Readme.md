@@ -17,3 +17,12 @@ pnpm expo start --offline
 › Press a │ open Android
 › Press w │ open web
 ```
+
+### 환경변수 설정
+
+.env 파일생성
+.env파일에 다음과 같이 입력
+
+```text
+SERVER_URL={ip what you want}
+```
