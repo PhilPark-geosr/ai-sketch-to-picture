@@ -18,8 +18,11 @@ interface RecommendViewProps {
 
 export default function RecommendView({ data }: RecommendViewProps) {
   const [displayData, setDisplayData] = useState<RecommendResponse | null>(data)
+
   useEffect(() => {
-    if (!data) {
+    if (data) {
+      setDisplayData(data)
+    } else {
       setDisplayData(mockData as RecommendResponse)
     }
   }, [data])

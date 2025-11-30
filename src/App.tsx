@@ -9,10 +9,14 @@ import RecommendView from './components/RecommendView'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { NavigationContainer } from '@react-navigation/native'
 
-function RecommendViewWrapper() {
+function RecommendViewWrapper({ route }: { route: any }) {
+  // const recommendResponse = route?.params?.recommendResponse || null
+
+  const { recommendResponse } = route.params || null
+
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <RecommendView />
+      <RecommendView data={recommendResponse} />
     </View>
   )
 }
