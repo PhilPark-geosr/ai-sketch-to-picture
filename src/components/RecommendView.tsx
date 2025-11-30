@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { RecommendResponse, Result } from '../types/recommend'
 import mockData from '../mock/recommend.json'
+import React from 'react'
 
 interface RecommendViewProps {
   data?: RecommendResponse | null
@@ -17,7 +18,6 @@ interface RecommendViewProps {
 
 export default function RecommendView({ data }: RecommendViewProps) {
   const [displayData, setDisplayData] = useState<RecommendResponse | null>(data)
-
   useEffect(() => {
     if (!data) {
       setDisplayData(mockData as RecommendResponse)
@@ -41,7 +41,7 @@ export default function RecommendView({ data }: RecommendViewProps) {
     <View style={styles.container}>
       <Text style={styles.title}>추천 결과</Text>
       <ScrollView contentContainerStyle={styles.gridContainer}>
-        {displayData.results?.map((item: Result, index: number) => (
+        {displayData?.results?.map((item: Result, index: number) => (
           <View
             key={index}
             style={styles.card}>

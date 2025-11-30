@@ -16,13 +16,15 @@ type Props = {
   style?: ViewStyle
   onUploaded?: (res: Response) => void
   onError?: (err: unknown) => void
+  navigation: any
 }
 
 export const MemoSketch: React.FC<Props> = ({
   uploadUrl,
   style,
   onUploaded,
-  onError
+  onError,
+  navigation
 }) => {
   const defaultStrokeWidth = 4
   const [image, setImage] = useState<PickedAsset | null>(null)
@@ -149,12 +151,17 @@ export const MemoSketch: React.FC<Props> = ({
     setModalVisible(true)
   }
 
+  function handleCloseModal(): void {
+    setModalVisible(false)
+    navigation.navigate('Recommend')
+  }
+
   return (
     <View style={[styles.container, style]}>
       {modalVisible && (
         <ImageModal
           modalVisible={modalVisible}
-          onClosed={() => setModalVisible(false)}
+          onClosed={handleCloseModal}
           image={image}
         />
       )}

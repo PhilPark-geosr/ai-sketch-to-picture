@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { PickedAsset } from '../managers/types'
 import { SketchUploader } from '../managers/SketchUploader'
+import React from 'react'
 
 interface Props {
   modalVisible: boolean
@@ -17,21 +18,26 @@ interface Props {
   image: PickedAsset
 }
 export default function ImageModal({ modalVisible, onClosed, image }: Props) {
+  // console.log('image', image.fileName)
   async function onClickRecommend(): Promise<void> {
-    console.warn('image', image)
-    const uploadUrl = 'set your ip'
-    const res = await SketchUploader.uploadPngBase64({
-      uploadUrl,
-      base64Png: image.base64,
-      fileName: 'memo-sketch.png',
-      fieldName: 'image',
-      prompt: 'white chair, please recommend ikea product'
-    })
+    console.log('onClickRecommend 함수 시작')
+    // console.log('image', JSON.stringify(image))
 
-    console.log('✅ 서버 업로드 완료:', res.status)
-    console.log('✅ 서버 업로드 결과:', res)
-    const data = await res.json()
-    console.log('✅ 서버 업로드 결과:', data)
+    //TODO: 네이게이션 완성 되면 다시 주석 해제할 것
+    // const uploadUrl = 'set your ip'
+    // const res = await SketchUploader.uploadPngBase64({
+    //   uploadUrl,
+    //   base64Png: image.base64,
+    //   fileName: 'memo-sketch.png',
+    //   fieldName: 'image',
+    //   prompt: 'white chair, please recommend ikea product'
+    // })
+
+    // console.log('✅ 서버 업로드 완료:', res.status)
+    // console.log('✅ 서버 업로드 결과:', res)
+
+    // const data = await res.json()
+    // console.log('✅ 서버 업로드 결과:', data)
     onClosed()
   }
 

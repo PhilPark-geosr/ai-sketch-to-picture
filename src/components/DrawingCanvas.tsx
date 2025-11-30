@@ -35,8 +35,6 @@ const DrawingCanvas = memo(
     ({ strokeColor, strokeWidth, backgroundColor }, ref) => {
       const viewShotRef = useRef<ViewShot>(null)
 
-      console.log('DrawingCanvas rendered')
-
       useImperativeHandle(ref, () => ({
         capture: async () => {
           if (!viewShotRef.current) {
