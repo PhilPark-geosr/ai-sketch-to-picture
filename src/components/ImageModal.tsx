@@ -12,6 +12,7 @@ import { PickedAsset } from '../managers/types'
 import { SketchUploader } from '../managers/SketchUploader'
 import React from 'react'
 import { RecommendResponse } from '../types/recommend'
+import { SERVER_URL } from '@env'
 
 interface Props {
   modalVisible: boolean
@@ -24,13 +25,13 @@ export default function ImageModal({ modalVisible, onClosed, image }: Props) {
     console.log('onClickRecommend 함수 시작')
     // console.log('image', JSON.stringify(image))
 
-    const uploadUrl = 'set your ip'
+    const uploadUrl = `${SERVER_URL}/recommend`
     const res = await SketchUploader.uploadPngBase64({
       uploadUrl,
       base64Png: image.base64,
       fileName: 'memo-sketch.png',
       fieldName: 'image',
-      prompt: 'green chair, please recommend ikea product'
+      prompt: 'orange chair, please recommend ikea product'
     })
 
     console.log('✅ 서버 업로드 완료:', res.status)
