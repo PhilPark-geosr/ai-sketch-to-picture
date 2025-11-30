@@ -11,10 +11,12 @@ import {
 import { PickedAsset } from '../managers/types'
 import { SketchUploader } from '../managers/SketchUploader'
 import React from 'react'
+import { RecommendResponse } from '../types/recommend'
+import { SERVER_URL } from '@env'
 
 interface Props {
   modalVisible: boolean
-  onClosed: () => void
+  onClosed: (data?: RecommendResponse) => void
   image: PickedAsset
 }
 export default function ImageModal({ modalVisible, onClosed, image }: Props) {
@@ -23,22 +25,26 @@ export default function ImageModal({ modalVisible, onClosed, image }: Props) {
     console.log('onClickRecommend 함수 시작')
     // console.log('image', JSON.stringify(image))
 
-    //TODO: 네이게이션 완성 되면 다시 주석 해제할 것
-    // const uploadUrl = 'set your ip'
-    // const res = await SketchUploader.uploadPngBase64({
-    //   uploadUrl,
-    //   base64Png: image.base64,
-    //   fileName: 'memo-sketch.png',
-    //   fieldName: 'image',
-    //   prompt: 'white chair, please recommend ikea product'
-    // })
+    const uploadUrl = `${SERVER_URL}/recommend`
+    // console.log('uploadUrl', uploadUrl)
 
-    // console.log('✅ 서버 업로드 완료:', res.status)
-    // console.log('✅ 서버 업로드 결과:', res)
-
-    // const data = await res.json()
-    // console.log('✅ 서버 업로드 결과:', data)
-    onClosed()
+    try {
+      const res = await SketchUploader.uploadPngBase64({
+        uploadUrl,
+        base64Png: image.base64,
+        fileName: 'memo-sketch.png',
+        fieldName: 'image',
+        prompt: 'white chair, please recommend ikea product'
+      })
+      console.log('✅ 서버 업로드 완료:', res.status)
+      console.log('✅ 서버 업로드 결과:', res)
+      const data = await res.json()
+      console.log('✅ 서버 업로드 결과:', data)
+      onClosed(data)
+    } catch (error) {
+      console.error('서버 업로드 에러:', error)
+      onClosed()
+    }
   }
 
   return (

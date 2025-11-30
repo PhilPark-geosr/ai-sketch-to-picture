@@ -10,6 +10,7 @@ import ImageCard from './ImageCard'
 import DrawerSlider from './DrawerSlider'
 import DrawingCanvas, { DrawingCanvasRef } from './DrawingCanvas'
 import ToolButton from './ToolButton'
+import { RecommendResponse } from '../types/recommend'
 
 type Props = {
   uploadUrl: string
@@ -151,9 +152,9 @@ export const MemoSketch: React.FC<Props> = ({
     setModalVisible(true)
   }
 
-  function handleCloseModal(): void {
+  function handleCloseModal(recommendResponse?: RecommendResponse): void {
     setModalVisible(false)
-    navigation.navigate('Recommend')
+    navigation.navigate('Recommend', { recommendResponse })
   }
 
   return (
