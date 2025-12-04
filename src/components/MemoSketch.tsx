@@ -11,7 +11,7 @@ import DrawerSlider from './DrawerSlider'
 import DrawingCanvas, { DrawingCanvasRef } from './DrawingCanvas'
 import ToolButton from './ToolButton'
 import { RecommendResponse } from '../types/recommend'
-
+import adaptiveIcon from '../assets/adaptive-icon.png'
 type Props = {
   uploadUrl: string
   style?: ViewStyle
@@ -41,6 +41,18 @@ export const MemoSketch: React.FC<Props> = ({
     useState(defaultStrokeWidth)
 
   const handleSend = async () => {
+    //TODO: 안드로이드 폰으로 테스트했을때 밑으로 이동
+    setImage({
+      uri: adaptiveIcon.uri,
+      fileName: 'memo-sketch.png',
+      mimeType: 'image/png',
+      fileSize: adaptiveIcon.length,
+      base64: adaptiveIcon.base64
+    })
+    openModal()
+
+    return
+
     try {
       if (!drawingCanvasRef.current) {
         throw new Error('DrawingCanvas ref is not available')
@@ -82,9 +94,16 @@ export const MemoSketch: React.FC<Props> = ({
       //TODO: 명세보고 타입지정
       const data: { image: string } = await res.json()
       // console.log('🖼️ 서버 이미지 blob URL 생성:', data.image)
-      setServerImageBlob(data.image)
-
+      // setServerImageBlob(data.image)
       onUploaded?.(res)
+
+      // setImage({
+      //   uri: data.image,
+      //   fileName: 'memo-sketch.png',
+      //   mimeType: 'image/png',
+      //   fileSize: data.image.length,
+      //   base64: data.image
+      // })
     } catch (err) {
       console.error('❌ Save 에러:', err)
       onError?.(err)
