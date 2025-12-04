@@ -227,13 +227,6 @@ export const MemoSketch: React.FC<Props> = ({
         />
       </View>
 
-      {!serverImageBlob && (
-        <ImageCard
-          src={serverImageBlob}
-          title="서버응답 이미지"
-        />
-      )}
-
       <DrawerSlider
         min={1}
         max={20}
