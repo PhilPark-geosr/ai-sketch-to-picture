@@ -6,7 +6,8 @@ import {
   View,
   StyleSheet,
   Text,
-  Image
+  Image,
+  TextInput
 } from 'react-native'
 import { PickedAsset } from '../managers/types'
 import { SketchUploader } from '../managers/SketchUploader'
@@ -21,6 +22,8 @@ interface Props {
 }
 export default function ImageModal({ modalVisible, onClosed, image }: Props) {
   // console.log('image', image.fileName)
+  const [text, onChangeText] = useState('')
+
   async function onClickRecommend(): Promise<void> {
     console.log('onClickRecommend 함수 시작')
     // console.log('image', JSON.stringify(image))
@@ -34,7 +37,7 @@ export default function ImageModal({ modalVisible, onClosed, image }: Props) {
         base64Png: image.base64,
         fileName: 'memo-sketch.png',
         fieldName: 'image',
-        prompt: 'white chair, please recommend ikea product'
+        prompt: text
       })
       console.log('✅ 서버 업로드 완료:', res.status)
       console.log('✅ 서버 업로드 결과:', res)
@@ -69,6 +72,18 @@ export default function ImageModal({ modalVisible, onClosed, image }: Props) {
               console.log('네이티브 이미지 로드 성공')
             }}
           />
+
+          <TextInput
+            multiline={true}
+            numberOfLines={4}
+            maxLength={300} // 최소 높이
+            style={styles.input}
+            onChangeText={onChangeText}
+            value={text}
+            placeholder="Tell me about your sketch"
+            textAlignVertical="top"
+          />
+
           <Pressable
             style={[styles.button, styles.buttonClose]}
             onPress={() => onClickRecommend()}>
@@ -128,5 +143,13 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#f8f8f8',
     flex: 1
+  },
+  input: {
+    height: 100,
+    margin: 12,
+    borderWidth: 2,
+    padding: 10,
+    borderRadius: 10,
+    borderColor: '#ccc'
   }
 })

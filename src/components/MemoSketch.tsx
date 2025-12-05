@@ -11,7 +11,7 @@ import DrawerSlider from './DrawerSlider'
 import DrawingCanvas, { DrawingCanvasRef } from './DrawingCanvas'
 import ToolButton from './ToolButton'
 import { RecommendResponse } from '../types/recommend'
-
+import adaptiveIcon from '../assets/adaptive-icon.png'
 type Props = {
   uploadUrl: string
   style?: ViewStyle
@@ -82,9 +82,27 @@ export const MemoSketch: React.FC<Props> = ({
       //TODO: 명세보고 타입지정
       const data: { image: string } = await res.json()
       // console.log('🖼️ 서버 이미지 blob URL 생성:', data.image)
-      setServerImageBlob(data.image)
-
+      // setServerImageBlob(data.image)
       onUploaded?.(res)
+
+      //NOTE: localtest code
+      // setImage({
+      //   uri: adaptiveIcon.uri,
+      //   fileName: 'memo-sketch.png',
+      //   mimeType: 'image/png',
+      //   fileSize: adaptiveIcon.length,
+      //   base64: adaptiveIcon.base64
+      // })
+
+      //TODO: 정합시 확인할 것
+      setImage({
+        uri: data.image,
+        fileName: 'memo-sketch.png',
+        mimeType: 'image/png',
+        fileSize: data.image.length,
+        base64: data.image
+      })
+      openModal()
     } catch (err) {
       console.error('❌ Save 에러:', err)
       onError?.(err)
@@ -207,13 +225,6 @@ export const MemoSketch: React.FC<Props> = ({
           textAlignVertical="top"
         />
       </View>
-
-      {!serverImageBlob && (
-        <ImageCard
-          src={serverImageBlob}
-          title="서버응답 이미지"
-        />
-      )}
 
       <DrawerSlider
         min={1}
