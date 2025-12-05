@@ -96,11 +96,11 @@ export const MemoSketch: React.FC<Props> = ({
 
       //TODO: 정합시 확인할 것
       setImage({
-        uri: fileUri,
+        uri: data.image,
         fileName: 'memo-sketch.png',
         mimeType: 'image/png',
-        fileSize: base64.length,
-        base64: base64
+        fileSize: data.image.length,
+        base64: data.image
       })
       openModal()
     } catch (err) {
