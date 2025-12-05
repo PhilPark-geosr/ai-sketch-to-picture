@@ -41,18 +41,6 @@ export const MemoSketch: React.FC<Props> = ({
     useState(defaultStrokeWidth)
 
   const handleSend = async () => {
-    //TODO: 안드로이드 폰으로 테스트했을때 밑으로 이동
-    setImage({
-      uri: adaptiveIcon.uri,
-      fileName: 'memo-sketch.png',
-      mimeType: 'image/png',
-      fileSize: adaptiveIcon.length,
-      base64: adaptiveIcon.base64
-    })
-    openModal()
-
-    return
-
     try {
       if (!drawingCanvasRef.current) {
         throw new Error('DrawingCanvas ref is not available')
@@ -97,13 +85,24 @@ export const MemoSketch: React.FC<Props> = ({
       // setServerImageBlob(data.image)
       onUploaded?.(res)
 
+      //NOTE: localtest code
       // setImage({
-      //   uri: data.image,
+      //   uri: adaptiveIcon.uri,
       //   fileName: 'memo-sketch.png',
       //   mimeType: 'image/png',
-      //   fileSize: data.image.length,
-      //   base64: data.image
+      //   fileSize: adaptiveIcon.length,
+      //   base64: adaptiveIcon.base64
       // })
+
+      //TODO: 정합시 확인할 것
+      setImage({
+        uri: fileUri,
+        fileName: 'memo-sketch.png',
+        mimeType: 'image/png',
+        fileSize: base64.length,
+        base64: base64
+      })
+      openModal()
     } catch (err) {
       console.error('❌ Save 에러:', err)
       onError?.(err)
