@@ -21,7 +21,7 @@ interface Props {
   image: PickedAsset
 }
 export default function ImageModal({ modalVisible, onClosed, image }: Props) {
-  // console.log('image', image.fileName)
+  // console.log('image', image.base64)
   const [text, onChangeText] = useState('')
 
   async function onClickRecommend(): Promise<void> {
