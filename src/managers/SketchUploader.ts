@@ -22,12 +22,19 @@ export class SketchUploader {
       prompt = 'realistic image'
     } = opts
 
+    const base64PngWithoutPrefix = base64Png.replace(
+      'data:image/png;base64,',
+      ''
+    )
+
     // React Native에서 FormData에 직접 base64 추가
     const form = new FormData()
     // console.warn('fieldName', fieldName)
     // console.warn('base64Png', base64Png)
     form.append(fieldName, {
-      uri: `data:image/png;base64,${base64Png}`,
+      //이미 앞에 data:image/png;base64, 가 붙어있는건 제거
+
+      uri: `data:image/png;base64,${base64PngWithoutPrefix}`,
       type: 'image/png',
       name: fileName
     } as any)

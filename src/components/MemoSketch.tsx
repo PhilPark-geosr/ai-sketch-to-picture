@@ -11,7 +11,8 @@ import DrawerSlider from './DrawerSlider'
 import DrawingCanvas, { DrawingCanvasRef } from './DrawingCanvas'
 import ToolButton from './ToolButton'
 import { RecommendResponse } from '../types/recommend'
-
+import { SERVER_URL } from '@env'
+import adaptiveIcon from '../assets/adaptive-icon.png'
 type Props = {
   uploadUrl: string
   style?: ViewStyle
@@ -41,6 +42,16 @@ export const MemoSketch: React.FC<Props> = ({
     useState(defaultStrokeWidth)
 
   const handleSend = async () => {
+    // setImage({
+    //   uri: adaptiveIcon.uri,
+    //   fileName: 'memo-sketch.png',
+    //   mimeType: 'image/png',
+    //   fileSize: adaptiveIcon.length,
+    //   base64: adaptiveIcon.base64
+    // })
+    // openModal()
+
+    // return
     try {
       if (!drawingCanvasRef.current) {
         throw new Error('DrawingCanvas ref is not available')
@@ -70,7 +81,7 @@ export const MemoSketch: React.FC<Props> = ({
 
       console.log('🚀 서버 업로드 시작...')
       const res = await SketchUploader.uploadPngBase64({
-        uploadUrl: 'set your ip',
+        uploadUrl: `${SERVER_URL}/upload`,
         base64Png: base64,
         fileName: 'memo-sketch.png',
         fieldName: 'sketch',
@@ -82,9 +93,18 @@ export const MemoSketch: React.FC<Props> = ({
       //TODO: 명세보고 타입지정
       const data: { image: string } = await res.json()
       // console.log('🖼️ 서버 이미지 blob URL 생성:', data.image)
-      setServerImageBlob(data.image)
-
+      // setServerImageBlob(data.image)
       onUploaded?.(res)
+
+      //TODO: 정합시 확인할 것
+      setImage({
+        uri: data.image,
+        fileName: 'memo-sketch.png',
+        mimeType: 'image/png',
+        fileSize: data.image.length,
+        base64: data.image
+      })
+      openModal()
     } catch (err) {
       console.error('❌ Save 에러:', err)
       onError?.(err)
@@ -207,13 +227,6 @@ export const MemoSketch: React.FC<Props> = ({
           textAlignVertical="top"
         />
       </View>
-
-      {!serverImageBlob && (
-        <ImageCard
-          src={serverImageBlob}
-          title="서버응답 이미지"
-        />
-      )}
 
       <DrawerSlider
         min={1}
