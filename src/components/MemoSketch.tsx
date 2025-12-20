@@ -13,6 +13,7 @@ import ToolButton from './ToolButton'
 import { RecommendResponse } from '../types/recommend'
 import { SERVER_URL } from '@env'
 import adaptiveIcon from '../assets/adaptive-icon.png'
+import CameraView from './CameraView'
 type Props = {
   uploadUrl: string
   style?: ViewStyle
@@ -227,6 +228,8 @@ export const MemoSketch: React.FC<Props> = ({
           textAlignVertical="top"
         />
       </View>
+
+      <CameraView navigation={navigation} />
 
       <DrawerSlider
         min={1}
