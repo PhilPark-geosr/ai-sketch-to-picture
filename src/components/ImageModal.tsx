@@ -7,7 +7,10 @@ import {
   StyleSheet,
   Text,
   Image,
-  TextInput
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView
 } from 'react-native'
 import { PickedAsset } from '../managers/types'
 import { SketchUploader } from '../managers/SketchUploader'
@@ -59,8 +62,14 @@ export default function ImageModal({ modalVisible, onClosed, image }: Props) {
         Alert.alert('Modal has been closed.')
         onClosed()
       }}>
-      <View style={styles.centeredView}>
-        <View style={styles.modalView}>
+      <KeyboardAvoidingView
+        style={styles.centeredView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
+        <ScrollView
+          style={styles.modalView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled">
           <Image
             source={{ uri: image.uri }} // base64 대신 uri 사용
             style={styles.serverImage}
@@ -89,8 +98,8 @@ export default function ImageModal({ modalVisible, onClosed, image }: Props) {
             onPress={() => onClickRecommend()}>
             <Text style={styles.textStyle}>제품 추천 받기</Text>
           </Pressable>
-        </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Modal>
   )
 }
@@ -101,14 +110,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
+
   modalView: {
     margin: 10,
     backgroundColor: 'white',
     borderRadius: 20,
-    padding: 20,
-    alignItems: 'center',
+
     width: '90%',
-    height: '80%',
+    maxHeight: '80%',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -117,6 +126,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5
+  },
+
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    padding: 20
   },
   button: {
     borderRadius: 20,
