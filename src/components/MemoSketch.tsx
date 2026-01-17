@@ -1,5 +1,14 @@
 import React, { useCallback, useRef, useState } from 'react'
-import { View, StyleSheet, ViewStyle, Alert, TextInput } from 'react-native'
+import {
+  View,
+  StyleSheet,
+  ViewStyle,
+  Alert,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView
+} from 'react-native'
 import * as FileSystem from 'expo-file-system/legacy'
 import * as MediaLibrary from 'expo-media-library'
 import { SketchUploader } from '../managers/SketchUploader'
@@ -13,6 +22,7 @@ import ToolButton from './ToolButton'
 import { RecommendResponse } from '../types/recommend'
 import { SERVER_URL } from '@env'
 import adaptiveIcon from '../assets/adaptive-icon.png'
+import CameraView from './CameraView'
 type Props = {
   uploadUrl: string
   style?: ViewStyle
@@ -178,7 +188,10 @@ export const MemoSketch: React.FC<Props> = ({
   }
 
   return (
-    <View style={[styles.container, style]}>
+    <KeyboardAvoidingView
+      style={[styles.container, style]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
       {modalVisible && (
         <ImageModal
           modalVisible={modalVisible}
@@ -187,55 +200,60 @@ export const MemoSketch: React.FC<Props> = ({
         />
       )}
 
-      <DrawingCanvas
-        ref={drawingCanvasRef}
-        strokeColor="#111"
-        strokeWidth={currentStrokeWidth}
-        backgroundColor="#fff"
-      />
+      {/* 전체 스크롤 영역 */}
+      <View style={{ flex: 1 }}>
+        <DrawingCanvas
+          ref={drawingCanvasRef}
+          strokeColor="#111"
+          strokeWidth={currentStrokeWidth}
+          backgroundColor="#fff"
+        />
 
-      {/* 툴바 */}
-      <View style={styles.toolbar}>
-        <ToolButton
-          label="Clear"
-          onPress={() => drawingCanvasRef.current?.clear()}
-        />
-        <ToolButton
-          label="Send"
-          onPress={handleSend}
-        />
-        <ToolButton
-          label="save"
-          onPress={handleSaveToGallery}
-        />
-        <ToolButton
-          label="Gallery"
-          onPress={busy ? undefined : handleOpenGallery}
+        {/* 툴바 */}
+        <View style={styles.toolbar}>
+          <ToolButton
+            label="Clear"
+            onPress={() => drawingCanvasRef.current?.clear()}
+          />
+          <ToolButton
+            label="Send"
+            onPress={handleSend}
+          />
+          <ToolButton
+            label="save"
+            onPress={handleSaveToGallery}
+          />
+          <ToolButton
+            label="Gallery"
+            onPress={busy ? undefined : handleOpenGallery}
+          />
+        </View>
+
+        {/* TODO: IOS 11이상부터는 SafeAreaView를 사용해야 함 */}
+        <View>
+          <TextInput
+            multiline={true}
+            numberOfLines={4}
+            maxLength={300}
+            style={styles.input}
+            onChangeText={onChangeText}
+            value={text}
+            placeholder="Tell me about your sketch"
+            textAlignVertical="top"
+          />
+        </View>
+
+        <CameraView navigation={navigation} />
+
+        <DrawerSlider
+          min={1}
+          max={20}
+          value={currentStrokeWidth}
+          onChangeValue={setCurrentStrokeWidth}
+          step={1}
         />
       </View>
-
-      {/* TODO: IOS 11이상부터는 SafeAreaView를 사용해야 함 */}
-      <View>
-        <TextInput
-          multiline={true}
-          numberOfLines={4}
-          maxLength={300} // 최소 높이
-          style={styles.input}
-          onChangeText={onChangeText}
-          value={text}
-          placeholder="Tell me about your sketch"
-          textAlignVertical="top"
-        />
-      </View>
-
-      <DrawerSlider
-        min={1}
-        max={20}
-        value={currentStrokeWidth}
-        onChangeValue={setCurrentStrokeWidth}
-        step={1}
-      />
-    </View>
+    </KeyboardAvoidingView>
   )
 }
 

@@ -184,6 +184,7 @@ const RADIUS = 16
 const styles = StyleSheet.create({
   // 카드 바깥: 그림자/모서리/테두리
   cardOuter: {
+    flex: 1, // 유동적으로 크기 조절
     borderRadius: RADIUS,
     backgroundColor: '#fff',
     // iOS shadow
@@ -199,12 +200,12 @@ const styles = StyleSheet.create({
   },
   // 카드 안쪽: 라운드에 맞춰 컨텐츠를 자르기
   cardInner: {
+    flex: 1, // 유동적으로 크기 조절
     borderRadius: RADIUS,
     overflow: 'hidden'
   },
   shot: {
-    // 캔버스 높이 (필요 시 외부 style로 덮어쓰기 가능)
-    height: 320
+    flex: 1 // 고정 높이 대신 flex 사용
   },
   canvas: {
     flex: 1
