@@ -8,6 +8,7 @@ import TodoList from './components/TodoList'
 import RecommendView from './components/RecommendView'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { NavigationContainer } from '@react-navigation/native'
+import { AudioStorageProvider } from './services/AudioStorageContext'
 
 function RecommendViewWrapper({ route }: { route: any }) {
   // const recommendResponse = route?.params?.recommendResponse || null
@@ -52,9 +53,11 @@ function RootStack() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <RootStack />
-      </NavigationContainer>
+      <AudioStorageProvider>
+        <NavigationContainer>
+          <RootStack />
+        </NavigationContainer>
+      </AudioStorageProvider>
     </SafeAreaProvider>
   )
 }
