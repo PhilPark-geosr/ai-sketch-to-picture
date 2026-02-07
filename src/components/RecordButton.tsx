@@ -21,7 +21,7 @@ export default function RecordButton() {
     await audioRecorder.stop();
     const uri =audioRecorder.uri;
     console.log('audioRecorder: ', uri);
-    confirmModalRef.current?.open();
+    confirmModalRef.current?.open(uri);
   }
 
   useEffect(() => {

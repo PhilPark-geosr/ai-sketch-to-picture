@@ -4,16 +4,20 @@ import { useAudioStorage } from '../services/AudioStorageContext';
 
 const ConfirmModal = forwardRef((props, ref) => {
   const [visible, setVisible] = useState(false);
+  const [uri, setUri] = useState<string | null>(null);
 
   const audioStorageService = useAudioStorage();
   useImperativeHandle(ref, () => ({
-    open: () => setVisible(true),
+    open: (uri) => {
+      setVisible(true);
+      setUri(uri);
+    },
     close: () => setVisible(false),
   }));
 
   const onSaveHandler = async () => {
     try {
-      const result = await audioStorageService.saveRecording();
+      const result = await audioStorageService.saveRecording(uri);
       console.log('saveRecording result: ', result);
     } catch (error) {
       console.error('saveRecording error: ', error);
