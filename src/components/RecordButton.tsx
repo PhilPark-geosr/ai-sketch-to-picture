@@ -1,18 +1,54 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import React, { useState } from 'react'
+import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
+import React, { useEffect, useRef, useState } from 'react'
+import {
+  useAudioRecorder,
+  AudioModule,
+  RecordingPresets,
+  setAudioModeAsync,
+  useAudioRecorderState,
+} from 'expo-audio';
+import ConfirmModal from "./Confirmodal";
 export default function RecordButton() {
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorderState = useAudioRecorderState(audioRecorder);
+  const confirmModalRef = useRef<any>(null);
+  const record = async () => {
+    await audioRecorder.prepareToRecordAsync();
+    audioRecorder.record();
+  }
+
+  const stopRecording = async () => {
+    await audioRecorder.stop();
+    const uri =audioRecorder.uri;
+    console.log('audioRecorder: ', uri);
+    confirmModalRef.current?.open();
+  }
+
+  useEffect(() => {
+    (async () => {
+      const status = await AudioModule.requestRecordingPermissionsAsync();
+      if (!status.granted) {
+        Alert.alert('Permission to access microphone was denied');
+      }
+
+      setAudioModeAsync({
+        playsInSilentMode: true,
+        allowsRecording: true,
+      });
+    })();
+  }, []);
+
   return (
     <View style={styles.container}>
-      <Pressable onPress={onRecord} style={styles.button}>
-        <Text>Record</Text>
+      <Pressable onPress={recorderState.isRecording? stopRecording : record} style={styles.button}>
+        <Text>{recorderState.isRecording ? 'Stop' : 'Record'}</Text>
         </Pressable>
+      <ConfirmModal ref={confirmModalRef} />
     </View>
   )
 }
 
-function onRecord() {
-  console.log('onRecord')
-}
+
 const styles = StyleSheet.create({
     container: {
       width: '100%',
@@ -29,4 +65,6 @@ const styles = StyleSheet.create({
       alignSelf: 'flex-start'
     }
   })
+
+
   
