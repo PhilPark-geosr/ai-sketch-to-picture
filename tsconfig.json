@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "jsx": "react"
+    "jsx": "react",
+    "lib" : ["ES2015"]
   },
   "extends": "expo/tsconfig.base"
 }
