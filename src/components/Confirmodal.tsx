@@ -12,7 +12,13 @@ const ConfirmModal = forwardRef((props, ref) => {
   }));
 
   const onSaveHandler = async () => {
-    
+    try {
+      const result = await audioStorageService.saveRecording();
+      console.log('saveRecording result: ', result);
+    } catch (error) {
+      console.error('saveRecording error: ', error);
+    }
+    setVisible(false);  // ← 저장 완료 후 실행됨!
   }
 
   return (
