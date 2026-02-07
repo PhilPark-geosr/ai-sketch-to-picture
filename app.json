@@ -47,6 +47,13 @@
           "savePhotosPermission": "이 앱은 사용자의 사진 라이브러리에 스케치를 저장하는 데 사용됩니다.",
           "isAccessMediaLocationEnabled": true
         }
+      ],
+      [
+        "expo-audio",
+        {
+          "recordAudioAndroid": true,
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+        }
       ]
     ],
     "extra": {
