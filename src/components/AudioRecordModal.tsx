@@ -10,6 +10,8 @@ import {
   AudioModule,
   RecordingPresets,
   setAudioModeAsync,
+  useAudioPlayer,
+  useAudioPlayerStatus,
   useAudioRecorder,
   useAudioRecorderState
 } from 'expo-audio'
@@ -22,10 +24,11 @@ const AudioRecordModal = forwardRef((props, ref) => {
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY)
   const audioStorageService = useAudioStorage()
   const recorderState = useAudioRecorderState(audioRecorder)
+  const player = useAudioPlayer(uri ?? null)
+  const playerStatus = useAudioPlayerStatus(player)
   useImperativeHandle(ref, () => ({
-    open: async uri => {
+    open: async (passedUri?: string) => {
       setVisible(true)
-      setUri(uri)
       await audioRecorder.prepareToRecordAsync()
       audioRecorder.record()
       setIsRecording(true)
@@ -63,12 +66,14 @@ const AudioRecordModal = forwardRef((props, ref) => {
   }
 
   const onCancelHandler = async () => {
-    await audioRecorder.stop()
-    const uri = audioRecorder.uri
-    console.log('audioRecorder: ', uri)
-    console.log('recorderState: ', recorderState.isRecording)
-    setVisible(false)
-    setIsPaused(false)
+    try {
+      await audioRecorder.stop()
+    } catch (error) {
+      console.warn('stop 실패:', error)
+    } finally {
+      setVisible(false)
+      setIsPaused(false)
+    }
   }
 
   const onResumeHandler = async () => {
@@ -77,9 +82,15 @@ const AudioRecordModal = forwardRef((props, ref) => {
   }
 
   const onCompleteHandler = async () => {
-    await audioRecorder.stop()
-    setIsRecording(false)
-    setIsPaused(false)
+    try {
+      await audioRecorder.stop()
+      setUri(audioRecorder.uri ?? null)
+    } catch (error) {
+      console.warn('stop 실패:', error)
+    } finally {
+      setIsRecording(false)
+      setIsPaused(false)
+    }
   }
 
   return (
@@ -96,7 +107,7 @@ const AudioRecordModal = forwardRef((props, ref) => {
                 <Pressable
                   style={[styles.button, styles.confirmButton]}
                   onPress={onResumeHandler}>
-                  <Text>재생</Text>
+                  <Text>계속</Text>
                 </Pressable>
               ) : (
                 <Pressable
@@ -121,6 +132,35 @@ const AudioRecordModal = forwardRef((props, ref) => {
           <View style={styles.modalContent}>
             <Text style={styles.title}>녹음이 완료되었습니다!</Text>
             <Text style={styles.message}>녹음 파일을 저장하시겠습니까?</Text>
+            {uri && (
+              <View style={styles.playbackContainer}>
+                <Pressable
+                  style={[styles.button, styles.playButton]}
+                  onPress={async () => {
+                    if (playerStatus.playing) {
+                      player.pause()
+                    } else {
+                      const atEnd =
+                        playerStatus.didJustFinish ||
+                        playerStatus.currentTime >= playerStatus.duration - 0.1
+
+                      if (atEnd) {
+                        await player.seekTo(0)
+                      }
+                      player.play()
+                    }
+                  }}>
+                  <Text style={styles.playButtonText}>
+                    {playerStatus.playing ? '일시정지' : '재생'}
+                  </Text>
+                </Pressable>
+                <Text style={styles.durationText}>
+                  {playerStatus.isLoaded
+                    ? `${Math.floor(playerStatus.currentTime)} / ${Math.floor(playerStatus.duration)}초`
+                    : '로딩중..'}
+                </Text>
+              </View>
+            )}
             <View style={styles.buttonContainer}>
               <Pressable
                 style={[styles.button, styles.cancelButton]}
@@ -169,8 +209,24 @@ const styles = StyleSheet.create({
   message: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 24,
+    marginBottom: 16,
     textAlign: 'center'
+  },
+  playbackContainer: {
+    marginBottom: 20,
+    alignItems: 'center',
+    gap: 8
+  },
+  playButton: {
+    backgroundColor: '#2196F3'
+  },
+  playButtonText: {
+    color: 'white',
+    fontWeight: '600'
+  },
+  durationText: {
+    fontSize: 12,
+    color: '#888'
   },
   buttonContainer: {
     flexDirection: 'row',
