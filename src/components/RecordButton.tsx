@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Pressable, Alert } from 'react-native'
 import React, { useRef } from 'react'
-import AudioRecordModal from './Confirmodal'
+import AudioRecordModal from './AudioRecordModal'
 export default function RecordButton() {
   const audioRecordModalRef = useRef<any>(null)
   const record = async () => {
