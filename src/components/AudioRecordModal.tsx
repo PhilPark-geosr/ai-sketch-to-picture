@@ -33,11 +33,6 @@ const AudioRecordModal = forwardRef((props, ref) => {
     close: () => setVisible(false)
   }))
 
-  // 로깅용, 확인되면 지울것
-  useEffect(() => {
-    console.log('recorderState:', recorderState)
-  }, [recorderState])
-
   useEffect(() => {
     ;(async () => {
       const status = await AudioModule.requestRecordingPermissionsAsync()
