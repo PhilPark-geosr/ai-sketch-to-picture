@@ -1,11 +1,10 @@
 import { View, Text, StyleSheet, Pressable, Alert } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
-import { AudioModule, setAudioModeAsync } from 'expo-audio'
-import ConfirmModal from './Confirmodal'
+import React, { useRef } from 'react'
+import AudioRecordModal from './Confirmodal'
 export default function RecordButton() {
-  const confirmModalRef = useRef<any>(null)
+  const audioRecordModalRef = useRef<any>(null)
   const record = async () => {
-    confirmModalRef.current?.open()
+    audioRecordModalRef.current?.open()
   }
 
   return (
@@ -15,7 +14,7 @@ export default function RecordButton() {
         style={styles.button}>
         <Text>Record</Text>
       </Pressable>
-      <ConfirmModal ref={confirmModalRef} />
+      <AudioRecordModal ref={audioRecordModalRef} />
     </View>
   )
 }

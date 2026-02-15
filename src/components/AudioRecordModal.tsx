@@ -4,15 +4,7 @@ import React, {
   useImperativeHandle,
   useState
 } from 'react'
-import {
-  View,
-  Text,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Alert,
-  GestureResponderEvent
-} from 'react-native'
+import { View, Text, Modal, Pressable, StyleSheet, Alert } from 'react-native'
 import { useAudioStorage } from '../services/AudioStorageContext'
 import {
   AudioModule,
@@ -22,7 +14,7 @@ import {
   useAudioRecorderState
 } from 'expo-audio'
 
-const ConfirmModal = forwardRef((props, ref) => {
+const AudioRecordModal = forwardRef((props, ref) => {
   const [visible, setVisible] = useState(false)
   const [uri, setUri] = useState<string | null>(null)
   const [isRecording, setIsRecording] = useState(false)
@@ -212,4 +204,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default ConfirmModal
+export default AudioRecordModal
