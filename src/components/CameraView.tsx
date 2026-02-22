@@ -11,6 +11,7 @@ import * as ImagePicker from 'expo-image-picker'
 import ImageModal from './ImageModal'
 import { RecommendResponse } from '../types/recommend'
 import { PickedAsset } from '../managers/types'
+import * as FileSystem from 'expo-file-system/legacy'
 export default function CameraView({ navigation }: { navigation: any }) {
   const [modalVisible, setModalVisible] = useState(false)
   const [image, setImage] = useState<PickedAsset | null>(null)
@@ -37,11 +38,18 @@ export default function CameraView({ navigation }: { navigation: any }) {
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0]
-      console.log('촬영된 이미지:', asset.uri)
+
+      console.log('촬영된 이미지:', asset)
+      const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+        encoding: 'base64'
+      })
+
+      console.log('CameraView base64:', base64)
 
       setImage({
         uri: asset.uri,
         width: asset.width,
+        base64: base64,
         height: asset.height,
         fileName: asset.fileName,
         mimeType: asset.mimeType,
