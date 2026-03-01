@@ -126,7 +126,7 @@ const AudioRecordModal = forwardRef((props, ref) => {
                 </Pressable>
               ) : (
                 <Pressable
-                  style={[styles.button, styles.confirmButton]}
+                  style={[styles.button, styles.resumeButton]}
                   onPress={onPauseHandler}>
                   <Ionicons
                     name="pause"
