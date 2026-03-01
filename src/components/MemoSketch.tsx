@@ -23,6 +23,7 @@ import { RecommendResponse } from '../types/recommend'
 import { SERVER_URL } from '@env'
 import adaptiveIcon from '../assets/adaptive-icon.png'
 import CameraView from './CameraView'
+import RecordButton from './RecordButton'
 type Props = {
   uploadUrl: string
   style?: ViewStyle
@@ -242,8 +243,11 @@ export const MemoSketch: React.FC<Props> = ({
             textAlignVertical="top"
           />
         </View>
-
-        <CameraView navigation={navigation} />
+        <View style={styles.buttonContainer}>
+          <CameraView navigation={navigation} />
+          <RecordButton />
+        </View>
+        
 
         <DrawerSlider
           min={1}
@@ -261,6 +265,10 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     flex: 1
+  },
+  buttonContainer: {
+    flex: 1,
+    flexDirection: 'row',
   },
   toolbar: {
     marginTop: 12,
