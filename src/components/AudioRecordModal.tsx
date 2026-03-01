@@ -54,6 +54,8 @@ const AudioRecordModal = forwardRef((props, ref) => {
     try {
       const result = await audioStorageService.saveRecording(uri)
       console.log('saveRecording result: ', result)
+      const { prompt_en, stt_text } = await result.json()
+      console.log('saveRecording data: ', prompt_en, stt_text)
     } catch (error) {
       console.error('saveRecording error: ', error)
     }
