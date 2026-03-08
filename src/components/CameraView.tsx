@@ -12,6 +12,7 @@ import ImageModal from './ImageModal'
 import { RecommendResponse } from '../types/recommend'
 import { PickedAsset } from '../managers/types'
 import * as FileSystem from 'expo-file-system/legacy'
+import { Ionicons } from '@expo/vector-icons'
 export default function CameraView({ navigation }: { navigation: any }) {
   const [modalVisible, setModalVisible] = useState(false)
   const [image, setImage] = useState<PickedAsset | null>(null)
@@ -71,7 +72,11 @@ export default function CameraView({ navigation }: { navigation: any }) {
       <Pressable
         onPress={openCamera}
         style={styles.button}>
-        <Text>CameraView</Text>
+        <Ionicons
+          name="camera"
+          size={32}
+          color="white"
+        />
       </Pressable>
     </View>
   )

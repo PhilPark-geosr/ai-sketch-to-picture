@@ -1,4 +1,6 @@
 import { View, Text, StyleSheet, Pressable, Alert } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+
 import React, { useRef } from 'react'
 import AudioRecordModal from './AudioRecordModal'
 export default function RecordButton() {
@@ -12,7 +14,11 @@ export default function RecordButton() {
       <Pressable
         onPress={record}
         style={styles.button}>
-        <Text>Record</Text>
+        <Ionicons
+          name="mic"
+          size={32}
+          color="white"
+        />
       </Pressable>
       <AudioRecordModal ref={audioRecordModalRef} />
     </View>

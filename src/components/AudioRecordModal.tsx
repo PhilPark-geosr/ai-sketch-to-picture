@@ -15,7 +15,7 @@ import {
   useAudioRecorder,
   useAudioRecorderState
 } from 'expo-audio'
-
+import { Ionicons } from '@expo/vector-icons'
 const AudioRecordModal = forwardRef((props, ref) => {
   const [visible, setVisible] = useState(false)
   const [uri, setUri] = useState<string | null>(null)
@@ -54,6 +54,8 @@ const AudioRecordModal = forwardRef((props, ref) => {
     try {
       const result = await audioStorageService.saveRecording(uri)
       console.log('saveRecording result: ', result)
+      const { prompt_en, stt_text } = await result.json()
+      console.log('saveRecording data: ', prompt_en, stt_text)
     } catch (error) {
       console.error('saveRecording error: ', error)
     }
@@ -103,28 +105,45 @@ const AudioRecordModal = forwardRef((props, ref) => {
           <View style={styles.modalContent}>
             <Text style={styles.title}>녹음 중</Text>
             <View style={styles.buttonContainer}>
-              {isPaused ? (
-                <Pressable
-                  style={[styles.button, styles.confirmButton]}
-                  onPress={onResumeHandler}>
-                  <Text>계속</Text>
-                </Pressable>
-              ) : (
-                <Pressable
-                  style={[styles.button, styles.confirmButton]}
-                  onPress={onPauseHandler}>
-                  <Text>일시정지</Text>
-                </Pressable>
-              )}
               <Pressable
                 style={[styles.button, styles.cancelButton]}
                 onPress={onCancelHandler}>
-                <Text>취소</Text>
+                <Ionicons
+                  name="trash-outline"
+                  size={24}
+                  color="#666"
+                />
               </Pressable>
+              {isPaused ? (
+                <Pressable
+                  style={[styles.button, styles.resumeButton]}
+                  onPress={onResumeHandler}>
+                  <Ionicons
+                    name="play"
+                    size={24}
+                    color="white"
+                  />
+                </Pressable>
+              ) : (
+                <Pressable
+                  style={[styles.button, styles.resumeButton]}
+                  onPress={onPauseHandler}>
+                  <Ionicons
+                    name="pause"
+                    size={24}
+                    color="white"
+                  />
+                </Pressable>
+              )}
+
               <Pressable
-                style={[styles.button, styles.cancelButton]}
+                style={[styles.button, styles.confirmButton]}
                 onPress={onCompleteHandler}>
-                <Text>완료</Text>
+                <Ionicons
+                  name="checkmark"
+                  size={24}
+                  color="white"
+                />
               </Pressable>
             </View>
           </View>
@@ -236,11 +255,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
-    minWidth: 100,
+    minWidth: 60,
     alignItems: 'center'
   },
   cancelButton: {
     backgroundColor: '#f0f0f0'
+  },
+  resumeButton: {
+    backgroundColor: '#2196F3'
   },
   confirmButton: {
     backgroundColor: '#4CAF50'
